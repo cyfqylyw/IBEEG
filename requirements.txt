@@ -1,0 +1,10 @@
+einops==0.8.0
+matplotlib==3.8.3
+mne==1.9.0
+numpy==2.2.1
+pandas==2.0.3
+python_dateutil==2.8.2
+scikit_learn==1.4.2
+scipy==1.14.1
+torch==2.0.1
+tqdm==4.66.1
