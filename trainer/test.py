@@ -9,8 +9,9 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import classification_report, balanced_accuracy_score, confusion_matrix
+from sklearn.metrics import precision_score, recall_score, f1_score, cohen_kappa_score
+from sklearn.metrics import roc_curve, auc, roc_auc_score
 
 
 def simple_test(model, test_loader, args):
@@ -21,11 +22,15 @@ def simple_test(model, test_loader, args):
         for eeg, label in test_loader:
             eeg_ft = torch.abs(torch.fft.fft(eeg, dim=1)).float().to(args.device)
             eeg_wt = torch.Tensor([np.concatenate(pywt.wavedec(subeeg.numpy(), 'db1'), axis=1) for subeeg in eeg]).float().to(args.device)
+
+            if args.dataset in ["isruc", "sleepedf", "hmc", "tuab", "tuev"]:
+                eeg_wt = eeg_wt[:, :, :args.chunk_second * args.freq_rate].to(args.device)
+                
             # eeg_wt = eeg_wt[:eeg_ft.shape[0], :eeg_ft.shape[1], :eeg_ft.shape[2]]
             eeg = eeg.float().to(args.device)
             label = label.to(args.device)
 
-            if args.model_name == 'EEG_Transformer_Network':
+            if args.model_name in ['EEG_CNN_Network', 'EEG_Transformer_Network']:
                 outputs = model(eeg)
             elif args.model_name == 'EEG_Transformer_VIB_Network':
                 (mu, std), outputs = model(eeg)
@@ -33,6 +38,7 @@ def simple_test(model, test_loader, args):
                 (mu, std), outputs, eeg_projection, eeg_projection_ft, eeg_projection_wt = model(eeg, eeg_ft, eeg_wt)
 
             _, predicted = torch.max(outputs, 1)
+
             total += label.size(0)
             correct += (predicted == label).sum().item()
 
@@ -50,11 +56,15 @@ def test(args, model, test_loader, device):
         for eeg, label in test_loader:
             eeg_ft = torch.abs(torch.fft.fft(eeg, dim=1)).float().to(args.device)
             eeg_wt = torch.Tensor([np.concatenate(pywt.wavedec(subeeg.numpy(), 'db1'), axis=1) for subeeg in eeg]).float().to(args.device)
+            
+            if args.dataset in ["isruc", "sleepedf", "hmc", "tuab", "tuev"]:
+                eeg_wt = eeg_wt[:,:,:args.chunk_second * args.freq_rate].to(args.device)
+
             # eeg_wt = eeg_wt[:eeg_ft.shape[0], :eeg_ft.shape[1], :eeg_ft.shape[2]]
             eeg = eeg.float().to(args.device)
             label = label.to(args.device)
 
-            if args.model_name == 'EEG_Transformer_Network':
+            if args.model_name in ['EEG_CNN_Network', 'EEG_Transformer_Network']:
                 outputs = model(eeg)
             elif args.model_name == 'EEG_Transformer_VIB_Network':
                 (mu, std), outputs = model(eeg)
@@ -68,8 +78,12 @@ def test(args, model, test_loader, device):
             y_prob.extend(torch.softmax(outputs, dim=1).cpu().numpy())  # 所有类别的概率
 
     # 计算并输出各项指标
+    print('*' * 20)
     accuracy = (np.array(y_pred) == np.array(y_true)).mean()
     print(f"Test Accuracy: {accuracy:.4f}")
+
+    kappa = cohen_kappa_score(y_true, y_pred)
+    print(f"Cohen's Kappa: {kappa:.4f}")
 
     # 计算 ROC 曲线和 AUC
     fpr = {}
@@ -110,3 +124,26 @@ def test(args, model, test_loader, device):
     print(f"Precision: {precision:.4f}")
     print(f"Recall: {recall:.4f}")
     print(f"F1 Score: {f1:.4f}")
+
+    # 输出分类报告
+    print("\nClassification Report:")
+    print(classification_report(y_true, y_pred, target_names=[f'Class {i}' for i in range(args.num_class)]))
+
+    # 计算平衡准确率
+    balanced_acc = balanced_accuracy_score(y_true, y_pred)
+    print(f"Balanced Accuracy: {balanced_acc:.4f}")
+
+    # 计算混淆矩阵
+    conf_matrix = confusion_matrix(y_true, y_pred)
+    print("\nConfusion Matrix:")
+    print(conf_matrix)
+
+    # 计算宏平均F1
+    macro_f1 = f1_score(y_true, y_pred, average='macro')
+    print(f"\nMacro F1 Score: {macro_f1:.4f}")
+
+    micro_f1 = f1_score(y_true, y_pred, average='micro')
+    print(f"Micro F1 Score: {micro_f1:.4f}")
+
+    weighted_f1 = f1_score(y_true, y_pred, average='weighted')
+    print(f"Weighted F1 Score: {weighted_f1:.4f}")

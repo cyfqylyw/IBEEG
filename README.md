@@ -35,42 +35,41 @@ Download the datasets:
 
 Put them in the folder:
 ```
-EEG_embedding
+IBEEG/
     |_ *.py
     |_ README.md
-    |_ datasets
+    |_ requirements.txt
+    |_ datasets/
         |_ preprocess_tuab.py
         |_ preprocess_tuev.py
-        |_ processed
-            |_ TUAB
-            |_ TUEV
-        |_ raw
-            |_ DREAMER
+        |_ processed/
+        |_ raw/
+            |_ DREAMER/
                 |_ DREAMER.mat
-            |_ STEW Dataset
+            |_ STEW Dataset/
                 |_ *.txt
-            |_ SleepEDF
-                |_ sleep-edf-database-expanded-1.0.0
-                    |_ sleep-telemetry
-            |_ ISRUC-SLEEP
-                |_ Subgroup_1
-                    |_ 1
+            |_ SleepEDF/
+                |_ sleep-edf-database-expanded-1.0.0/
+                    |_ sleep-telemetry/
+            |_ ISRUC-SLEEP/
+                |_ Subgroup_1/
+                    |_ 1/
                         |_ 1.rec
                         |_ 1.txt
-                |_ Subgroup_2
-                |_ Subgroup_3
-            |_ SEED-V
-                |_ EEG_raw
-            |_ Crowsourced
-                |_ Raw Data
-            |_ TUAB
-                |_ edf
-                    |_ train
-                    |_ eval
-            |_ TUEV
-                |_ edf
-                    |_ train
-                    |_ eval
+                |_ Subgroup_2/
+                |_ Subgroup_3/
+            |_ SEED-V/
+                |_ EEG_raw/
+            |_ Crowsourced/
+                |_ Raw Data/
+            |_ TUAB/
+                |_ edf/
+                    |_ train/
+                    |_ eval/
+            |_ TUEV/
+                |_ edf/
+                    |_ train/
+                    |_ eval/
 ```
 
 Preprocess for TUAB and TUEV datasets.
@@ -82,23 +81,46 @@ python preprocess_tuev.py
 
 ## Usage
 
+For EEG2Rep Dataset:
 ```
-nohup python -u main.py --dataset dreamer --overlap 0 --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:0 > output_dreamer2.log 2>&1 &
+nohup python -u main.py --dataset dreamer --overlap 0 --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:0 > output_dreamer4.log 2>&1 &
 <!-- acc: 0.6845 -->
 
 nohup python -u main.py --dataset stew --overlap 0 --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:3 > output_stew.log 2>&1 &
 <!-- acc: 0.8000 -->
+```
 
-python main.py --dataset isruc --epoch 10 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 16
+For Sleep Dataset:
+```
+nohup python -u main.py --dataset isruc --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:5 > output_isruc1.log 2>&1 &
+nohup python -u main.py --dataset isruc --epoch 100 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:5 > output_isruc2.log 2>&1 &
 
-nohup python main.py --dataset tuev --epoch 10 --nhead 5 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:0 > output_tuev.log 2>&1 &
+nohup python -u main.py --dataset sleepedf --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:0 > output_sleepedf1.log 2>&1 &
+nohup python -u main.py --dataset sleepedf --epoch 100 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:1 > output_sleepedf2.log 2>&1 &
+nohup python -u main.py --dataset sleepedf --epoch 100 --lr 1e-4 --alpha 1e-5 --beta 1e-5 --batch_size 32 --device cuda:2 > output_sleepedf3.log 2>&1 &
 
-nohup python main.py --dataset tuev --epoch 3 --nhead 10 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:1 --batch_size 16 --model_name EEG_Transformer_Network > output_tuev_EEG_Transformer_Network.log 2>&1 &
+nohup python -u main.py --dataset hmc --epoch 100 --lr 1e-3 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:3 > output_hmc1.log 2>&1 &
+```
 
 
+
+For TUH Dataset:
+```
+nohup python -u main.py --dataset tuab --epoch 50 --lr 1e-3 --device cuda:4 --model_name EEG_Transformer_Network > output_tuab_T.log 2>&1 &
+
+nohup python -u main.py --dataset tuab --epoch 50 --batch_size 32 --lr 1e-3 --device cuda:2 > output_tuab.log 2>&1 &
+
+
+nohup python main.py --dataset tuev --epoch 50 --batch_size 32 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:3 > output_tuev.log 2>&1 &
+nohup python main.py --dataset tuev --epoch 50 --batch_size 32 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --model_name EEG_Transformer_Network --device cuda:3 > output_tuev_T.log 2>&1 &
+```
+
+
+
+
+For other:
+```
 python main.py --dataset seedv --resample True --freq_rate 128 --chunk_second 2 --epoch 50 --lr 1e-5
-
-python main.py --dataset tuab --epoch 50 --lr 1e-4 --selected_channels "EEG FP1-REF,EEG F7-REF,EEG T3-REF,EEG T5-REF,EEG O1-REF,EEG FP2-REF,EEG F8-REF,EEG T4-REF,EEG T6-REF,EEG O2-REF,EEG F3-REF,EEG C3-REF,EEG P3-REF,EEG F4-REF,EEG C4-REF,EEG P4-REF"
 ```
 
 ## Performances

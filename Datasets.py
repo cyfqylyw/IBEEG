@@ -5,8 +5,11 @@ import pandas as pd
 import scipy.io
 import pickle
 from collections import defaultdict
+from scipy.signal import resample
+from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
 from torcheeg import transforms
-from torcheeg.datasets import ISRUCDataset, SleepEDFxDataset
+from torcheeg.datasets import ISRUCDataset, SleepEDFxDataset, HMCDataset
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 
@@ -140,7 +143,14 @@ class IsrucDataset(Dataset):
             online_transform=transforms.ToTensor(),
             io_path='./datasets/processed/ISRUC-SLEEP/'
             )
+        
+        train_size = int(0.1 * len(self.original_dataset))
+        test_size = len(self.original_dataset) - train_size
+        self.original_dataset, _ = random_split(self.original_dataset, [train_size, test_size])
+
         self.valid_indices = self._get_valid_indices()
+        self.data, self.labels = self._extract_data_and_labels()
+        self.data, self.labels = self._apply_undersampling()
 
     def _get_valid_indices(self):
         valid_indices = []
@@ -149,13 +159,133 @@ class IsrucDataset(Dataset):
             if (a[0] != 0).all():
                 valid_indices.append(i)
         return valid_indices
+    
+    def _extract_data_and_labels(self):
+        data = []
+        labels = []
+        for idx in self.valid_indices:
+            sample = self.original_dataset[idx]
+            data.append(sample[0].numpy())  # Extract EEG data
+            labels.append(sample[1])        # Extract label
+        return np.array(data), np.array(labels)
+    
+    def _apply_undersampling(self):
+        # Reshape data to 2D for RandomUnderSampler (samples, features)
+        n_samples, n_channels, n_timesteps = self.data.shape
+        data_reshaped = self.data.reshape(n_samples, -1)  # Flatten the EEG data
+        
+        # Apply RandomUnderSampler
+        rus = RandomUnderSampler(random_state=42)
+        data_resampled, labels_resampled = rus.fit_resample(data_reshaped, self.labels)
+        
+        # Reshape data back to original shape
+        data_resampled = data_resampled.reshape(-1, n_channels, n_timesteps)
+        return data_resampled, labels_resampled
 
     def __len__(self):
-        return len(self.valid_indices)
+        return len(self.labels)
 
     def __getitem__(self, idx):
-        original_idx = self.valid_indices[idx]
-        return self.original_dataset[original_idx]
+        # original_idx = self.valid_indices[idx]
+        # return self.original_dataset[original_idx]
+        eeg_data = torch.tensor(self.data[idx], dtype=torch.float32)
+        label = torch.tensor(self.labels[idx], dtype=torch.long)
+        return eeg_data, label
+    
+
+class SleepedfDataset(Dataset):
+    def __init__(self):
+        self.original_dataset = SleepEDFxDataset(root_path='./datasets/raw/SleepEDF/sleep-edf-database-expanded-1.0.0/', 
+            sfreq=100,
+            channels=['EEG Fpz-Cz', 'EEG Pz-Oz'],
+            label_transform=transforms.Compose([
+                transforms.Select('label'),
+                transforms.Mapping({'Sleep stage W': 0, 'Sleep stage N1': 1, 'Sleep stage N2': 2, 'Sleep stage N3': 3, 'Sleep stage R': 4, 'Lights off@@EEG F4-A1': 0})
+                ]),
+                online_transform=transforms.ToTensor(),
+                io_path='./datasets/processed/SleepEDF/'
+            )
+        
+        train_size = int(0.1 * len(self.original_dataset))
+        test_size = len(self.original_dataset) - train_size
+        self.original_dataset, _ = random_split(self.original_dataset, [train_size, test_size])
+        self.data, self.labels = self._extract_data_and_labels()
+        self.data, self.labels = self._apply_undersampling()
+    
+    def _extract_data_and_labels(self):
+        data = []
+        labels = []
+        for sample in self.original_dataset:
+            data.append(sample[0].numpy())  # Extract EEG data
+            labels.append(sample[1])        # Extract label
+        return np.array(data), np.array(labels)
+    
+    def _apply_smote(self):
+        # Reshape data to 2D for SMOTE (samples, features)
+        n_samples, n_channels, n_timesteps = self.data.shape
+        data_reshaped = self.data.reshape(n_samples, -1)  # Flatten the EEG data
+        smote = SMOTE(random_state=42)
+        data_resampled, labels_resampled = smote.fit_resample(data_reshaped, self.labels)
+        data_resampled = data_resampled.reshape(-1, n_channels, n_timesteps)
+        return data_resampled, labels_resampled
+
+    def _apply_undersampling(self):
+        n_samples, n_channels, n_timesteps = self.data.shape
+        data_reshaped = self.data.reshape(n_samples, -1)  # Flatten the EEG data
+        rus = RandomUnderSampler(random_state=42)
+        data_resampled, labels_resampled = rus.fit_resample(data_reshaped, self.labels)
+        data_resampled = data_resampled.reshape(-1, n_channels, n_timesteps)
+        return data_resampled, labels_resampled
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        # Return the resampled data and labels
+        eeg_data = torch.tensor(self.data[idx], dtype=torch.float32)
+        label = torch.tensor(self.labels[idx], dtype=torch.long)
+        return eeg_data, label
+
+
+class HmcDataset(Dataset):
+    def __init__(self):
+        self.original_dataset = HMCDataset(root_path='./datasets/raw/HMC/physionet.org/files/hmc-sleep-staging/1.1/recordings',
+                    sfreq=100,
+                    channels=['EEG F4-M1', 'EEG C4-M1', 'EEG O2-M1', 'EEG C3-M2'],
+                    label_transform=transforms.Compose([
+                        transforms.Select('label'),
+                        transforms.Mapping({'Sleep stage W': 0,
+                                            'Sleep stage N1': 1,
+                                            'Sleep stage N2': 2,
+                                            'Sleep stage N3': 3,
+                                            'Sleep stage R': 4,
+                                            'Lights off@@EEG F4-A1': 0})
+                    ]),
+                    online_transform=transforms.ToTensor(),
+                    io_path='./datasets/processed/HMC/'
+                    )
+        
+        train_size = int(0.1 * len(self.original_dataset))
+        test_size = len(self.original_dataset) - train_size
+        self.original_dataset, _ = random_split(self.original_dataset, [train_size, test_size])
+        self.data, self.labels = self._extract_data_and_labels()
+    
+    def _extract_data_and_labels(self):
+        data = []
+        labels = []
+        for sample in self.original_dataset:
+            data.append(sample[0].numpy())  # Extract EEG data
+            labels.append(sample[1])        # Extract label
+        return np.array(data), np.array(labels)
+    
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        # Return the resampled data and labels
+        eeg_data = torch.tensor(self.data[idx], dtype=torch.float32)
+        label = torch.tensor(self.labels[idx], dtype=torch.long)
+        return eeg_data, label
 
 
 class SeedVDataset(BaseEEGDataset):
@@ -303,60 +433,191 @@ class TuevDataset(Dataset):
         return chunk, int(label - 1)
 
 
-class TuabDataset(BaseEEGDataset):
-    def __init__(self, args, data_path="datasets/raw/TUAB/edf/", train=True):
-        super().__init__()
-        self.data_path = data_path
-        self.mode = 'train' if train else 'eval'
-        self.chunk_second = args.chunk_second
-        self.freq_rate = args.freq_rate
-        self.chunk_length = args.chunk_second * args.freq_rate  # 2s * 128 = 256
-        self.overlap = args.overlap
-        self.selected_channels = args.selected_channels
-        self.samples = self._prepare_samples()
+class TUABLoader(torch.utils.data.Dataset):
+    def __init__(self, root, files, sampling_rate=200):
+        self.root = root
+        self.files = files
+        self.default_rate = 200
+        self.sampling_rate = sampling_rate
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, index):
+        sample = pickle.load(open(os.path.join(self.root, self.files[index]), "rb"))
+        X = sample["X"]
+        # from default 200Hz to ?
+        if self.sampling_rate != self.default_rate:
+            X = resample(X, 10 * self.sampling_rate, axis=-1)
+        X = X / (
+            np.quantile(np.abs(X), q=0.95, method="linear", axis=-1, keepdims=True)
+            + 1e-8
+        )
+        Y = sample["y"]
+        X = torch.FloatTensor(X)
+        return X, Y
+
+
+def prepare_TUAB_dataloader(args):
+    root = "datasets/processed/TUAB"
+
+    train_files = os.listdir(os.path.join(root, "train"))
+    np.random.shuffle(train_files)
+    train_files = train_files[:100000]
+    val_files = os.listdir(os.path.join(root, "val"))
+    test_files = os.listdir(os.path.join(root, "test"))
+
+    print('length of train/val/test files:')
+    print(len(train_files), len(val_files), len(test_files))
+
+    # prepare training and test data loader
+    train_loader = DataLoader(
+        TUABLoader(os.path.join(root, "train"), train_files),
+        batch_size=args.batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=args.num_workers,
+        persistent_workers=True,
+    )
+    test_loader = DataLoader(
+        TUABLoader(os.path.join(root, "test"), test_files),
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        persistent_workers=True,
+    )
+    val_loader = DataLoader(
+        TUABLoader(os.path.join(root, "val"), val_files),
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        persistent_workers=True,
+    )
+    print('length of train/val/test data loader:')
+    print(len(train_loader), len(val_loader), len(test_loader))
+    return train_loader, test_loader, val_loader
+
+
+class TUEVLoader(Dataset):
+    def __init__(self, root, files, sampling_rate=200):
+        self.root = root
+        self.files = files
+        self.default_rate = 256
+        self.sampling_rate = sampling_rate
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, index):
+        sample = pickle.load(open(os.path.join(self.root, self.files[index]), "rb"))
+        X = sample["signal"]
+        # 256 * 5 -> 1000, from 256Hz to ?
+        if self.sampling_rate != self.default_rate:
+            X = resample(X, 5 * self.sampling_rate, axis=-1)
+        X = X / (
+            np.quantile(np.abs(X), q=0.95, method="linear", axis=-1, keepdims=True)
+            + 1e-8
+        )
+        Y = int(sample["label"][0] - 1)
+        X = torch.FloatTensor(X)
+        return X, Y
+
+
+def prepare_TUEV_dataloader(args):
+    root = "./datasets/processed/TUEV/edf"
+    train_files = os.listdir(os.path.join(root, "train"))
+    train_sub = list(set([f.split("_")[0] for f in train_files]))
+    print("train sub", len(train_sub))
+    test_files = os.listdir(os.path.join(root, "eval"))
+
+    val_sub = np.random.choice(train_sub, size=int(len(train_sub) * 0.1), replace=False)
+    train_sub = list(set(train_sub) - set(val_sub))
+    val_files = [f for f in train_files if f.split("_")[0] in val_sub]
+    train_files = [f for f in train_files if f.split("_")[0] in train_sub]
+
+    # prepare training and test data loader
+    train_loader = torch.utils.data.DataLoader(
+        TUEVLoader(os.path.join(root, "train"), train_files),
+        batch_size=args.batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=args.num_workers,
+        persistent_workers=True,
+    )
+    test_loader = torch.utils.data.DataLoader(
+        TUEVLoader(os.path.join(root, "eval"), test_files),
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        persistent_workers=True,
+    )
+    val_loader = torch.utils.data.DataLoader(
+        TUEVLoader(os.path.join(root, "train"), val_files),
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        persistent_workers=True,
+    )
+
+    print('length of train/val/test files:')
+    print(len(train_files), len(val_files), len(test_files))
+
+    print('length of train/val/test data loader:')
+    print(len(train_loader), len(val_loader), len(test_loader))
+    return train_loader, test_loader, val_loader
+
+
+# class TuabDataset(BaseEEGDataset):
+#     def __init__(self, args, data_path="datasets/raw/TUAB/edf/", train=True):
+#         super().__init__()
+#         self.data_path = data_path
+#         self.mode = 'train' if train else 'eval'
+#         self.chunk_second = args.chunk_second
+#         self.freq_rate = args.freq_rate
+#         self.chunk_length = args.chunk_second * args.freq_rate  # 2s * 128 = 256
+#         self.overlap = args.overlap
+#         self.selected_channels = args.selected_channels
+#         self.samples = self._prepare_samples()
     
-    def _prepare_samples(self):
-        """
-        Prepare the samples by reading .edf files and splitting the data into chunks of size (chunk_length, len(selected_channels)).
-        """
-        samples = []
-        folder_path = os.path.join(self.data_path, self.mode)  # Folder for training or evaluation
+#     def _prepare_samples(self):
+#         """
+#         Prepare the samples by reading .edf files and splitting the data into chunks of size (chunk_length, len(selected_channels)).
+#         """
+#         samples = []
+#         folder_path = os.path.join(self.data_path, self.mode)  # Folder for training or evaluation
 
-        # Loop through abnormal and normal folders within train or eval directories
-        for label_folder in os.listdir(folder_path):
-            label_path = os.path.join(folder_path, label_folder)
-            tcp_path = os.path.join(label_path, '01_tcp_ar')
+#         # Loop through abnormal and normal folders within train or eval directories
+#         for label_folder in os.listdir(folder_path):
+#             label_path = os.path.join(folder_path, label_folder)
+#             tcp_path = os.path.join(label_path, '01_tcp_ar')
             
-            # Check if it's a folder and contains EDF files
-            if os.path.isdir(label_path):
-                label = 0 if 'abnormal' in label_folder else 1
+#             # Check if it's a folder and contains EDF files
+#             if os.path.isdir(label_path):
+#                 label = 0 if 'abnormal' in label_folder else 1
 
-                # Loop through all EDF files in the current folder
-                for filename in os.listdir(tcp_path):
-                    if filename.endswith('.edf'):
-                        file_path = os.path.join(tcp_path, filename)
-                        raw_data = mne.io.read_raw_edf(file_path)
+#                 # Loop through all EDF files in the current folder
+#                 for filename in os.listdir(tcp_path):
+#                     if filename.endswith('.edf'):
+#                         file_path = os.path.join(tcp_path, filename)
+#                         raw_data = mne.io.read_raw_edf(file_path)
                         
-                        # Select the channels if specified
-                        if self.selected_channels:
-                            selected_indices = [raw_data.info['ch_names'].index(channel) for channel in self.selected_channels]
-                            eeg_data = raw_data.get_data(picks=selected_indices)  # Get selected channels
-                        else:
-                            eeg_data = raw_data.get_data()  # Use all channels
+#                         # Select the channels if specified
+#                         if self.selected_channels:
+#                             selected_indices = [raw_data.info['ch_names'].index(channel) for channel in self.selected_channels]
+#                             eeg_data = raw_data.get_data(picks=selected_indices)  # Get selected channels
+#                         else:
+#                             eeg_data = raw_data.get_data()  # Use all channels
 
-                        time_length = eeg_data.shape[1]
-                        step_size = self.chunk_length - self.overlap
+#                         time_length = eeg_data.shape[1]
+#                         step_size = self.chunk_length - self.overlap
 
-                        for i in range((time_length - self.chunk_length) // step_size + 1):
-                            start_idx = i * step_size
-                            end_idx = start_idx + self.chunk_length
-                            chunk = eeg_data[:, start_idx:end_idx]  # Get the chunk
-                            # print(chunk.shape)
+#                         for i in range((time_length - self.chunk_length) // step_size + 1):
+#                             start_idx = i * step_size
+#                             end_idx = start_idx + self.chunk_length
+#                             chunk = eeg_data[:, start_idx:end_idx]  # Get the chunk
+#                             # print(chunk.shape)
                             
-                            # Append sample (transposed chunk, label)
-                            samples.append((chunk, label))
+#                             # Append sample (transposed chunk, label)
+#                             samples.append((chunk, label))
 
-        return samples
-
-
-
+#         return samples

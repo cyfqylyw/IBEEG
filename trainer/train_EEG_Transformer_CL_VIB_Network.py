@@ -4,14 +4,11 @@ import torch
 import torch.optim as optim
 from .test import simple_test
 from .nt_xent_loss import nt_xent_loss
-from torch.cuda.amp import GradScaler, autocast 
 
 
 def train(model, train_loader, test_loader, criterion, optimizer, args):
     model.train()
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
-
-    scaler = GradScaler()  # 初始化 GradScaler，用于缩放损失
 
     for epoch in range(args.epochs):
         running_loss = 0.0
@@ -23,12 +20,11 @@ def train(model, train_loader, test_loader, criterion, optimizer, args):
         for i, (eeg, label) in enumerate(train_loader):
             eeg_ft = torch.abs(torch.fft.fft(eeg, dim=1)).float().to(args.device)
             eeg_wt = torch.Tensor([np.concatenate(pywt.wavedec(subeeg.numpy(), 'db1'), axis=1) for subeeg in eeg]).float().to(args.device)
-            # eeg_wt = eeg_wt[:eeg_ft.shape[0], :eeg_ft.shape[1], :eeg_ft.shape[2]]
+            if args.dataset in ["isruc", "sleepedf", "hmc", "tuab", "tuev"]:
+                eeg_wt = eeg_wt[:,:,:args.chunk_second * args.freq_rate].to(args.device)
             eeg = eeg.float().to(args.device)
             label = label.long().to(args.device)
 
-            # 使用 autocast 开启混合精度
-            # with autocast():
             (mu, std), logit, eeg_projection, eeg_projection_ft, eeg_projection_wt = model(eeg, eeg_ft, eeg_wt)
             class_loss = criterion(logit, label)
             cont_loss = nt_xent_loss(eeg_projection, eeg_projection_ft, args.temperature) + nt_xent_loss(eeg_projection, eeg_projection_wt, args.temperature)
@@ -39,12 +35,8 @@ def train(model, train_loader, test_loader, criterion, optimizer, args):
             # izx_bound = info_loss
 
             optimizer.zero_grad()
-            scaler.scale(total_loss).backward()  # 缩放损失并反向传播
-            scaler.step(optimizer)  # 更新参数
-            scaler.update()  # 更新缩放器
-
-            # total_loss.backward()
-            # optimizer.step()
+            total_loss.backward()
+            optimizer.step()
 
             _, predicted = torch.max(logit, 1)
             total += label.size(0)

@@ -19,12 +19,12 @@ def parse_args():
                         help="dataset to train and evluate",
                         type=str, 
                         default='dreamer', 
-                        choices=['dreamer', 'stew', 'isruc', 'seedv', 'tuab', 'tuev'])
+                        choices=['dreamer', 'stew', 'isruc', 'sleepedf', 'hmc', 'seedv', 'tuab', 'tuev'])
     parser.add_argument("--model_name",
                         help="name of the model to use",
                         type=str,
                         default='EEG_Transformer_CL_VIB_Network',
-                        choices=['EEG_Transformer_Network', 'EEG_Transformer_VIB_Network', 'EEG_Transformer_CL_VIB_Network']
+                        choices=['EEG_CNN_Network', 'EEG_Transformer_Network', 'EEG_Transformer_VIB_Network', 'EEG_Transformer_CL_VIB_Network']
                         )
     parser.add_argument("--batch_size", 
                         help="batch size",
@@ -56,6 +56,14 @@ def parse_args():
                         help="dimention of latent representation, or the value of K in VIB",
                         type=int,
                         default=256)
+    parser.add_argument('--feat_dim',
+                        help="dimention of feature representation for Classification loss",
+                        type=int,
+                        default=2048)
+    parser.add_argument('--proj_dim',
+                        help="dimention of projected representation for InfoNCE",
+                        type=int,
+                        default=512)
     parser.add_argument('--alpha',
                         help="alpha weight for information bottleneck: I(t,y) + alpha * [ I(t_, t_ft) + I(t_, t_wt) ]",
                         type=float,
@@ -97,6 +105,8 @@ def parse_args():
         "dreamer": 5,
         "stew": 9,
         "isruc": 5,
+        "sleepedf": 5,
+        "hmc": 5,
         "seedv": 5,
         "tuab": 2,
         "tuev": 6
@@ -107,6 +117,8 @@ def parse_args():
         "dreamer": 14,
         "stew": 14,
         "isruc": 6,
+        "sleepedf": 2,
+        "hmc": 4,
         "seedv": 62,
         "tuab": 16,
         "tuev": 16
@@ -122,7 +134,7 @@ def parse_args():
             args.chunk_second = 10
         elif args.dataset in ['tuev']:
             args.chunk_second = 5
-        elif args.dataset in ['isruc']:
+        elif args.dataset in ['isruc', 'sleepedf', 'hmc']:
             args.chunk_second = 30
     
     if args.freq_rate is None:
@@ -130,11 +142,9 @@ def parse_args():
             args.freq_rate = 128
         elif args.dataset in ['seedv']:
             args.freq_rate = 1000
-        elif args.dataset in ['tuab']:
-            args.freq_rate = 256
-        elif args.dataset in ['tuev']:
-            args.freq_rate = 250
-        elif args.dataset in ['isruc']:
+        elif args.dataset in ['tuab', 'tuev']:
+            args.freq_rate = 200
+        elif args.dataset in ['isruc', 'sleepedf', 'hmc']:
             args.freq_rate = 100
 
     return args

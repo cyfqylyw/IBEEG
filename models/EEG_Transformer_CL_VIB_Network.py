@@ -18,29 +18,43 @@ class EEG_Transformer_CL_VIB_Network(nn.Module):
         n_feature = self._get_feature_dim(shape=input_shape)
         
         self.latent_dim = args.latent_dim
+        self.feat_dim = args.feat_dim
+        self.proj_dim = args.proj_dim     # dim of projected representation
 
-        self.fc_feature_all = nn.Sequential(
-            nn.Linear(n_feature * 3, n_feature),
+        self.fc_feature = nn.Sequential(
+            nn.Linear(n_feature, self.feat_dim),
             nn.ReLU(True),
-            nn.Linear(n_feature, n_feature))
-
+            nn.Linear(self.feat_dim, self.feat_dim))
+        self.fc_feature_ft = nn.Sequential(
+            nn.Linear(n_feature, self.feat_dim),
+            nn.ReLU(True),
+            nn.Linear(self.feat_dim, self.feat_dim))
+        self.fc_feature_wt = nn.Sequential(
+            nn.Linear(n_feature, self.feat_dim),
+            nn.ReLU(True),
+            nn.Linear(self.feat_dim, self.feat_dim))
+        
         self.fc_projector = nn.Sequential(
-            nn.Linear(n_feature, n_feature),
+            nn.Linear(self.feat_dim, self.proj_dim),
             nn.ReLU(True),
-            nn.Linear(n_feature, n_feature))
-        
+            nn.Linear(self.proj_dim, self.proj_dim))
         self.fc_projector_ft = nn.Sequential(
-            nn.Linear(n_feature, n_feature),
+            nn.Linear(self.feat_dim, self.proj_dim),
             nn.ReLU(True),
-            nn.Linear(n_feature, n_feature))
-        
+            nn.Linear(self.proj_dim, self.proj_dim))
         self.fc_projector_wt = nn.Sequential(
-            nn.Linear(n_feature, n_feature),
+            nn.Linear(self.feat_dim, self.proj_dim),
             nn.ReLU(True),
-            nn.Linear(n_feature, n_feature))
+            nn.Linear(self.proj_dim, self.proj_dim))
+        
+        self.fc_feature_all = nn.Sequential(
+            nn.Linear(self.feat_dim * 3, self.feat_dim),
+            nn.ReLU(True),
+            nn.Linear(self.feat_dim, self.feat_dim))
+
 
         self.fc_statistics = nn.Sequential(
-            nn.Linear(n_feature, 1024),
+            nn.Linear(self.feat_dim, 1024),
             nn.ReLU(True),
             nn.Linear(1024, 1024),
             nn.ReLU(True),
@@ -75,9 +89,9 @@ class EEG_Transformer_CL_VIB_Network(nn.Module):
     
     def forward(self, eeg, eeg_ft, eeg_wt, num_sample=1):
         # feature representation for classification
-        eeg_feature = self.eeg_encoder(eeg)
-        eeg_feature_ft = self.eeg_encoder_ft(eeg_ft)
-        eeg_feature_wt = self.eeg_encoder_wt(eeg_wt)
+        eeg_feature = self.fc_feature(self.eeg_encoder(eeg))
+        eeg_feature_ft = self.fc_feature_ft(self.eeg_encoder_ft(eeg_ft))
+        eeg_feature_wt = self.fc_feature_wt(self.eeg_encoder_wt(eeg_wt))
 
         # projection for contrastive loss
         eeg_projection = self.fc_projector(eeg_feature)
