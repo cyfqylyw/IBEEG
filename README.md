@@ -39,6 +39,11 @@ IBEEG/
     |_ *.py
     |_ README.md
     |_ requirements.txt
+    |_ models/
+        |_ [model_name].py
+    |_ trainer/
+        |_ train_[model_name].py
+        |_ test.py
     |_ datasets/
         |_ preprocess_tuab.py
         |_ preprocess_tuev.py
