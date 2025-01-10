@@ -21,7 +21,8 @@ def prepare_dataset(args):
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
     elif args.dataset == "sleepedf":
-        dataset = SleepedfDataset()
+        # dataset = SleepedfDataset()   # 用 torcheeg.datasets.SleepEDFxDataset 读取
+        dataset = SleepEdf_EEGDataset()
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])

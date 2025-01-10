@@ -117,7 +117,7 @@ def parse_args():
         "dreamer": 14,
         "stew": 14,
         "isruc": 6,
-        "sleepedf": 2,
+        "sleepedf": 1,  # 2
         "hmc": 4,
         "seedv": 62,
         "tuab": 16,

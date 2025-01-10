@@ -4,12 +4,14 @@ import numpy as np
 import pandas as pd
 import scipy.io
 import pickle
+import glob
 from collections import defaultdict
 from scipy.signal import resample
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from torcheeg import transforms
 from torcheeg.datasets import ISRUCDataset, SleepEDFxDataset, HMCDataset
+from transform import *
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 
@@ -192,6 +194,30 @@ class IsrucDataset(Dataset):
         label = torch.tensor(self.labels[idx], dtype=torch.long)
         return eeg_data, label
     
+
+
+class SleepEdf_EEGDataset(BaseEEGDataset):
+    def __init__(self, data_path="./datasets/processed/sleepedf", channel="Fpz-Cz"):
+        self.data_path = data_path
+        self.channel = channel
+        self.samples = self._prepare_samples()
+
+    def _prepare_samples(self):
+        samples = []
+        dirname = os.path.join(self.data_path, self.channel)
+        dirlst = [x for x in os.listdir(dirname) if x[-3:] == 'npz']
+        for fn in dirlst:
+            filepath = os.path.join(dirname, fn)
+            data = np.load(filepath)
+
+            x, y = data['x'], data['y']
+            for i in range(len(data['y'])):
+                sample_data = torch.from_numpy(data['x'][i]).float().unsqueeze(0)
+                sample_label = torch.tensor(data['y'][i], dtype=torch.long).unsqueeze(0)
+                samples.append((sample_data, sample_label))
+
+        return samples
+
 
 class SleepedfDataset(Dataset):
     def __init__(self):

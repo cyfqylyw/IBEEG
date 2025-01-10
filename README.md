@@ -47,6 +47,7 @@ IBEEG/
     |_ datasets/
         |_ preprocess_tuab.py
         |_ preprocess_tuev.py
+        |_ preprocess_sleepedf.py
         |_ processed/
         |_ raw/
             |_ DREAMER/
@@ -55,7 +56,7 @@ IBEEG/
                 |_ *.txt
             |_ SleepEDF/
                 |_ sleep-edf-database-expanded-1.0.0/
-                    |_ sleep-telemetry/
+                    |_ sleep-cassette/
             |_ ISRUC-SLEEP/
                 |_ Subgroup_1/
                     |_ 1/
@@ -100,11 +101,11 @@ For Sleep Dataset:
 nohup python -u main.py --dataset isruc --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:5 > output_isruc1.log 2>&1 &
 nohup python -u main.py --dataset isruc --epoch 100 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:5 > output_isruc2.log 2>&1 &
 
-nohup python -u main.py --dataset sleepedf --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:0 > output_sleepedf1.log 2>&1 &
-nohup python -u main.py --dataset sleepedf --epoch 100 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:1 > output_sleepedf2.log 2>&1 &
+nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:0 > output_sleepedf1.log 2>&1 &
+nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:5 > output_sleepedf1.log 2>&1 &
 nohup python -u main.py --dataset sleepedf --epoch 100 --lr 1e-4 --alpha 1e-5 --beta 1e-5 --batch_size 32 --device cuda:2 > output_sleepedf3.log 2>&1 &
 
-nohup python -u main.py --dataset hmc --epoch 100 --lr 1e-3 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:3 > output_hmc1.log 2>&1 &
+nohup python -u main.py --dataset hmc --epoch 50 --lr 1e-3 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:3 > output_hmc1.log 2>&1 &
 ```
 
 
