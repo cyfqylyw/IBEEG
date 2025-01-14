@@ -98,8 +98,8 @@ nohup python -u main.py --dataset stew --overlap 0 --epoch 100 --lr 1e-4 --alpha
 
 For Sleep Dataset:
 ```
-nohup python -u main.py --dataset isruc --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:5 > output_isruc1.log 2>&1 &
-nohup python -u main.py --dataset isruc --epoch 100 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:5 > output_isruc2.log 2>&1 &
+nohup python -u main.py --dataset isruc --epoch 50 --lr 1e-2 --alpha 1e-3 --beta 1e-3 --batch_size 256 --device cuda:5 > output_isruc1.log 2>&1 &
+nohup python -u main.py --dataset isruc --epoch 100 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 256 --device cuda:5 > output_isruc2.log 2>&1 &
 
 nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:0 > output_sleepedf1.log 2>&1 &
 nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:5 > output_sleepedf1.log 2>&1 &

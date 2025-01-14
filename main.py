@@ -33,8 +33,8 @@ model = getattr(importlib.import_module(model_path), args.model_name)(args).to(a
 if 'VIB' in args.model_name: model.weight_init() 
 
 # define criterion and optimizer
-# criterion = nn.CrossEntropyLoss()
-criterion = FocalLoss(alpha=1, gamma=2, reduction='mean')
+criterion = nn.CrossEntropyLoss()
+# criterion = FocalLoss(alpha=0.8, gamma=0.7, reduction='mean')
 optimizer = optim.AdamW(model.parameters(), lr=args.lr)
 
 # train the model 

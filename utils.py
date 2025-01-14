@@ -2,7 +2,7 @@ from Datasets import *
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import DataLoader, random_split
 
 def prepare_dataset(args):
     if args.dataset == "dreamer":
@@ -16,16 +16,23 @@ def prepare_dataset(args):
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
     elif args.dataset == "isruc":
-        dataset = IsrucDataset()
+        dataset = IsrucDataset(data_dir='datasets/raw/ISRUC-mat', label_dir='datasets/raw/ISRUC-SLEEP/Subgroup_1', subject_ids=list(range(1, 101)))
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
     elif args.dataset == "sleepedf":
-        # dataset = SleepedfDataset()   # 用 torcheeg.datasets.SleepEDFxDataset 读取
-        dataset = SleepEdf_EEGDataset()
+        dataset = SleepedfDataset()   # 用 torcheeg.datasets.SleepEDFxDataset 读取
+
+        # dataset = SleepEdf_EEGDataset()  # 用 eswa方式 读取
+        # print(f"here 1: {len(dataset)}")
+        # train_size = int(0.1 * len(dataset))
+        # test_size = len(dataset) - train_size
+        # dataset, test_dataset = random_split(dataset, [train_size, test_size])
+
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+
     elif args.dataset == "hmc":
         dataset = HmcDataset()
         train_size = int(0.8 * len(dataset))
@@ -81,7 +88,7 @@ def focal_loss(y_hat, y, alpha=0.8, gamma=0.7):
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, alpha=1, gamma=2, reduction='mean'):
+    def __init__(self, alpha=0.8, gamma=0.7, reduction='mean'):  # 原本：alpha=1, gamma=2
         super(FocalLoss, self).__init__()
         self.alpha = alpha
         self.gamma = gamma

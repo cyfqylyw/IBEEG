@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument('--lr', 
                         help='learning rate',
                         type=float, 
-                        default=1e-4)
+                        default=1e-3)
     parser.add_argument('--device', 
                         help='GPU device',
                         type=str, 
@@ -71,7 +71,7 @@ def parse_args():
     parser.add_argument('--temperature',
                         help="temperature for contrastive learning",
                         type=float,
-                        default=0.5)
+                        default=0.07)
     parser.add_argument('--beta',
                         help="beta weight for information bottleneck: I(t,y) - beta * I(t,x)",
                         type=float,
@@ -144,6 +144,8 @@ def parse_args():
             args.freq_rate = 1000
         elif args.dataset in ['tuab', 'tuev']:
             args.freq_rate = 200
+        elif args.dataset in ['isruc']:
+            args.freq_rate = 40
         elif args.dataset in ['isruc', 'sleepedf', 'hmc']:
             args.freq_rate = 100
 
