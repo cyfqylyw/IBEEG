@@ -174,19 +174,10 @@ class IsrucDataset(Dataset):
             # 将数据和标签添加到列表中
             self.data.append(eeg_data)
             self.labels.append(labels)
-
-            # print(f'\nsubject id: {subject_id}')
-            # print(f"data shape: {eeg_data.shape}")  # 打印数据形状
-            # print(f"labels shape: {labels.shape}")  # 打印标签形状
-            # assert eeg_data.shape[0] == labels.shape[0], "Data and labels must have the same length!"
             
-            
-
         # 将所有数据合并
         self.data = np.concatenate(self.data, axis=0)  # (total_num, 6, 6000)
         self.labels = np.concatenate(self.labels, axis=0)  # (total_num,)
-
-        
 
     def __len__(self):
         return len(self.labels)
@@ -194,8 +185,8 @@ class IsrucDataset(Dataset):
     def __getitem__(self, idx):
         data = self.data[idx]  # (6, 6000)
         label = self.labels[idx]  # scalar
-        # data = torch.tensor(data, dtype=torch.float32)
-        # label = torch.tensor(label, dtype=torch.long)
+        data = torch.tensor(data, dtype=torch.float32)
+        label = torch.tensor(label, dtype=torch.long)
         return data, label
 
 

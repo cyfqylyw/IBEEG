@@ -18,10 +18,6 @@ def train(model, train_loader, test_loader, criterion, optimizer, args):
         correct = 0
         total = 0
         for i, (eeg, label) in enumerate(train_loader):
-            if torch.isnan(eeg).any():
-                print(f"Warning: NaN detected in batch {i}!")
-                continue  # 跳过当前批次
-
             eeg_ft = torch.abs(torch.fft.fft(eeg, dim=1)).float().to(args.device)
             eeg_wt = torch.Tensor([np.concatenate(pywt.wavedec(subeeg.numpy(), 'db1'), axis=1) for subeeg in eeg]).float().to(args.device)
             if args.dataset in ["isruc", "sleepedf", "hmc", "tuab", "tuev"]:
