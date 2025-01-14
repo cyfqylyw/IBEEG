@@ -3,18 +3,6 @@
 Code implementation for **IBEEG**.
 
 
-<!-- ## Abstract
-
-TODO -->
-
-
-## Quick Start
-
-Quick start to understand input and output of each model.
-
-TODO
-
-
 
 ## Requirements
 
@@ -27,10 +15,10 @@ pip install -r requirements.txt
 ## Dataset Preparation and Folder Structure
 
 Download the datasets:
-- [TUAB & TUEV](https://isip.piconepress.com/projects/nedc/html/tuh_eeg/), 
-- [Crowdsourced](https://osf.io/9bvgh/), 
-- [Simultaneous Task EEG Workload (STEW)](https://ieee-dataport.org/open-access/stew-simultaneous-task-eeg-workload-dataset), 
 - [DREAMER](https://zenodo.org/records/546113), 
+- [Simultaneous Task EEG Workload (STEW)](https://ieee-dataport.org/open-access/stew-simultaneous-task-eeg-workload-dataset), 
+- [Crowdsourced](https://osf.io/9bvgh/), or use the processed version in [EEG2Rep](https://github.com/Navidfoumani/EEG2Rep) with this [link](https://drive.google.com/drive/folders/1KQyST6VJffWWD8r60AjscBy6MHLnT184?usp=sharing)
+- [TUAB & TUEV](https://isip.piconepress.com/projects/nedc/html/tuh_eeg/), 
 - [SEED-V Dataset](https://bcmi.sjtu.edu.cn/home/seed/seed-v.html) 
 
 Put them in the folder:
@@ -98,14 +86,14 @@ nohup python -u main.py --dataset stew --overlap 0 --epoch 100 --lr 1e-4 --alpha
 
 For Sleep Dataset:
 ```
-nohup python -u main.py --dataset isruc --epoch 50 --lr 1e-2 --alpha 1e-3 --beta 1e-3 --batch_size 256 --device cuda:5 > output_isruc1.log 2>&1 &
-nohup python -u main.py --dataset isruc --epoch 100 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 256 --device cuda:5 > output_isruc2.log 2>&1 &
+nohup python -u main.py --dataset isruc --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:5 > output_isruc_a-3_b-4_l-3000.log 2>&1 &
+
 
 nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:0 > output_sleepedf1.log 2>&1 &
 nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:5 > output_sleepedf1.log 2>&1 &
 nohup python -u main.py --dataset sleepedf --epoch 100 --lr 1e-4 --alpha 1e-5 --beta 1e-5 --batch_size 32 --device cuda:2 > output_sleepedf3.log 2>&1 &
 
-nohup python -u main.py --dataset hmc --epoch 50 --lr 1e-3 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:3 > output_hmc1.log 2>&1 &
+nohup python -u main.py --dataset hmc --epoch 50 --lr 1e-3 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:3 > output_hmc1.log 2>&1 &
 ```
 
 

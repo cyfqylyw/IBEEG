@@ -19,7 +19,7 @@ def parse_args():
                         help="dataset to train and evluate",
                         type=str, 
                         default='dreamer', 
-                        choices=['dreamer', 'stew', 'isruc', 'sleepedf', 'hmc', 'seedv', 'tuab', 'tuev'])
+                        choices=['dreamer', 'stew', 'crowd', 'isruc', 'sleepedf', 'hmc', 'seedv', 'tuab', 'tuev'])
     parser.add_argument("--model_name",
                         help="name of the model to use",
                         type=str,
@@ -51,6 +51,10 @@ def parse_args():
                         help="number of head in TransformerEncoderLayer",
                         type=int,
                         default=8)
+    parser.add_argument('--d_model',
+                        help='number of dimension of the input to TransformerEncoderLayer',
+                        type=int,
+                        default=None)
     
     parser.add_argument('--latent_dim',
                         help="dimention of latent representation, or the value of K in VIB",
@@ -100,10 +104,13 @@ def parse_args():
 
     args = parser.parse_args()
 
+    
+
     # const definition
     num_class_dict = {
         "dreamer": 5,
         "stew": 9,
+        "crowd": 2,
         "isruc": 5,
         "sleepedf": 5,
         "hmc": 5,
@@ -116,6 +123,7 @@ def parse_args():
     num_channel_dict = {
         "dreamer": 14,
         "stew": 14,
+        "crowd": 14,
         "isruc": 6,
         "sleepedf": 1,  # 2
         "hmc": 4,
@@ -126,7 +134,7 @@ def parse_args():
     args.num_channel = num_channel_dict[args.dataset]
 
     if args.chunk_second is None:
-        if args.dataset in ['dreamer', 'stew']:
+        if args.dataset in ['dreamer', 'stew', 'crowd']:
             args.chunk_second = 2
         elif args.dataset in ['seedv']:
             args.chunk_second = 1
@@ -138,16 +146,19 @@ def parse_args():
             args.chunk_second = 30
     
     if args.freq_rate is None:
-        if args.dataset in ['dreamer', 'stew']:
+        if args.dataset in ['dreamer', 'stew', 'crowd']:
             args.freq_rate = 128
         elif args.dataset in ['seedv']:
             args.freq_rate = 1000
         elif args.dataset in ['tuab', 'tuev']:
             args.freq_rate = 200
         elif args.dataset in ['isruc']:
-            args.freq_rate = 40
+            args.freq_rate = 100
         elif args.dataset in ['isruc', 'sleepedf', 'hmc']:
             args.freq_rate = 100
+
+    if args.d_model is None:
+        args.d_model = args.chunk_second * args.freq_rate
 
     return args
 

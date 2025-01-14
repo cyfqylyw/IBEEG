@@ -135,8 +135,9 @@ class StewDataset(BaseEEGDataset):
         return samples
 
 
+
 class IsrucDataset(Dataset):
-    def __init__(self, data_dir='datasets/raw/ISRUC-mat', label_dir='datasets/raw/ISRUC-SLEEP/Subgroup_1', subject_ids=list(range(1, 101))):
+    def __init__(self, data_dir='datasets/raw/ISRUC-mat/Subgroup_1', label_dir='datasets/raw/ISRUC-SLEEP/Subgroup_1', subject_ids=list(range(1, 101))):
         """
         Args:
             data_dir (str): 包含 .mat 文件的目录路径。
@@ -158,24 +159,21 @@ class IsrucDataset(Dataset):
             # 提取6个通道的数据
             channels = ['F3_A2', 'C3_A2', 'O1_A2', 'F4_A1', 'C4_A1', 'O2_A1']
             eeg_data = np.stack([mat_data[channel] for channel in channels], axis=1)  # (num, 6, 6000)
-            eeg_data = eeg_data[:, :, ::5]
+            eeg_data = eeg_data[:, :, ::2]    # (num, 6, 3000)
             
             # 加载标签文件
             label_file = os.path.join(label_dir, f'{subject_id}/{subject_id}_1.txt')
             with open(label_file, 'r') as f:
                 labels = f.read().splitlines()
-                labels = np.array([int(label) for label in labels[:eeg_data.shape[0]]])  # 读取所有标签
-                # labels = np.array([int(label) for label in labels[:-30]])  # 抛弃最后30个标签
+                labels = np.array([int(label) for label in labels[:eeg_data.shape[0]]])  # 抛弃最后30个标签
             
             # 将标签中的5改为4
             labels[labels == 5] = 4
-            labels = labels
             
             # 将数据和标签添加到列表中
             self.data.append(eeg_data)
             self.labels.append(labels)
             
-        # 将所有数据合并
         self.data = np.concatenate(self.data, axis=0)  # (total_num, 6, 6000)
         self.labels = np.concatenate(self.labels, axis=0)  # (total_num,)
 
@@ -183,90 +181,52 @@ class IsrucDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        data = self.data[idx]  # (6, 6000)
-        label = self.labels[idx]  # scalar
+        data = self.data[idx]
+        label = self.labels[idx]
         data = torch.tensor(data, dtype=torch.float32)
         label = torch.tensor(label, dtype=torch.long)
         return data, label
 
 
-# class IsrucDataset_torcheeg_load(Dataset):
-#     def __init__(self):
-#         self.original_dataset = torcheeg.datasets.ISRUCDataset(root_path='./datasets/raw/ISRUC-SLEEP', sfreq=100,
-#             channels=['F3-M2', 'C3-M2', 'O1-M2', 'F4-M1', 'C4-M1', 'O2-M1'],
-#             label_transform=transforms.Compose([
-#                 transforms.Select('label'),
-#                 transforms.Mapping({'Sleep stage W': 0,
-#                                     'Sleep stage N1': 1,
-#                                     'Sleep stage N2': 2,
-#                                     'Sleep stage N3': 3,
-#                                     'Sleep stage R': 4,
-#                                     'Lights off@@EEG F4-A1': 5})
-#             ]),
-#             # online_transform=transforms.Compose([
-#             #             transforms.MeanStdNormalize(),
-#             #             transforms.ToTensor(),
-#             #         ]),
-#             # io_path='./datasets/processed/ISRUC-SLEEP_w_MeanStdNormalize/'
-
-#             online_transform=transforms.ToTensor(),
-#             io_path='./datasets/processed/ISRUC-SLEEP5'
-
-#             # online_transform=torchvision.transforms.Compose([        # Mapping: Lights off: 5
-#             #     torchvision.transforms.ToTensor(),
-#             #     torchvision.transforms.Normalize((0.1307,), (0.3081,))
-#             # ]),
-#             # io_path='./datasets/processed/ISRUC-SLEEP_tvtrans'
-#             )
+class HmcDataset(Dataset):
+    def __init__(self):
+        self.original_dataset = HMCDataset(root_path='./datasets/raw/HMC/physionet.org/files/hmc-sleep-staging/1.1/recordings',
+                    sfreq=100,
+                    channels=['EEG F4-M1', 'EEG C4-M1', 'EEG O2-M1', 'EEG C3-M2'],
+                    label_transform=transforms.Compose([
+                        transforms.Select('label'),
+                        transforms.Mapping({'Sleep stage W': 0,
+                                            'Sleep stage N1': 1,
+                                            'Sleep stage N2': 2,
+                                            'Sleep stage N3': 3,
+                                            'Sleep stage R': 4,
+                                            'Lights off@@EEG F4-A1': 0})
+                    ]),
+                    online_transform=transforms.ToTensor(),
+                    io_path='./datasets/processed/HMC/'
+                    )
         
-#         train_size = int(0.1 * len(self.original_dataset))
-#         test_size = len(self.original_dataset) - train_size
-#         self.original_dataset, _ = random_split(self.original_dataset, [train_size, test_size])
-
-#         self.valid_indices = self._get_valid_indices()
-#         self.data, self.labels = self._extract_data_and_labels()
-#         # self.data, self.labels = self._apply_undersampling()
-
-#     def _get_valid_indices(self):
-#         valid_indices = []
-#         for i in range(len(self.original_dataset)):
-#             a = self.original_dataset[i]
-#             if (a[0] != 0).all():
-#                 valid_indices.append(i)
-#         return valid_indices
+        # train_size = int(0.1 * len(self.original_dataset))
+        # test_size = len(self.original_dataset) - train_size
+        # self.original_dataset, _ = random_split(self.original_dataset, [train_size, test_size])
+        self.data, self.labels = self._extract_data_and_labels()
     
-#     def _extract_data_and_labels(self):
-#         data = []
-#         labels = []
-#         for idx in self.valid_indices:
-#             sample = self.original_dataset[idx]
-#             data.append(sample[0].numpy())  # Extract EEG data
-#             labels.append(sample[1])        # Extract label
-#         return np.array(data), np.array(labels)
+    def _extract_data_and_labels(self):
+        data = []
+        labels = []
+        for sample in self.original_dataset:
+            data.append(sample[0].numpy())  # Extract EEG data
+            labels.append(sample[1])        # Extract label
+        return np.array(data), np.array(labels)
     
-#     def _apply_undersampling(self):
-#         # Reshape data to 2D for RandomUnderSampler (samples, features)
-#         n_samples, n_channels, n_timesteps = self.data.shape
-#         data_reshaped = self.data.reshape(n_samples, -1)  # Flatten the EEG data
-        
-#         # Apply RandomUnderSampler
-#         rus = RandomUnderSampler(random_state=42)
-#         data_resampled, labels_resampled = rus.fit_resample(data_reshaped, self.labels)
-        
-#         # Reshape data back to original shape
-#         data_resampled = data_resampled.reshape(-1, n_channels, n_timesteps)
-#         return data_resampled, labels_resampled
+    def __len__(self):
+        return len(self.labels)
 
-#     def __len__(self):
-#         return len(self.labels)
-
-#     def __getitem__(self, idx):
-#         # original_idx = self.valid_indices[idx]
-#         # return self.original_dataset[original_idx]
-#         eeg_data = torch.tensor(self.data[idx], dtype=torch.float32)
-#         label = torch.tensor(self.labels[idx], dtype=torch.long)
-#         return eeg_data, label
-    
+    def __getitem__(self, idx):
+        # Return the resampled data and labels
+        eeg_data = torch.tensor(self.data[idx], dtype=torch.float32)
+        label = torch.tensor(self.labels[idx], dtype=torch.long)
+        return eeg_data, label
 
 
 class SleepEdf_EEGDataset(BaseEEGDataset):
@@ -346,46 +306,107 @@ class SleepedfDataset(Dataset):
         return eeg_data, label
 
 
-class HmcDataset(Dataset):
-    def __init__(self):
-        self.original_dataset = HMCDataset(root_path='./datasets/raw/HMC/physionet.org/files/hmc-sleep-staging/1.1/recordings',
-                    sfreq=100,
-                    channels=['EEG F4-M1', 'EEG C4-M1', 'EEG O2-M1', 'EEG C3-M2'],
-                    label_transform=transforms.Compose([
-                        transforms.Select('label'),
-                        transforms.Mapping({'Sleep stage W': 0,
-                                            'Sleep stage N1': 1,
-                                            'Sleep stage N2': 2,
-                                            'Sleep stage N3': 3,
-                                            'Sleep stage R': 4,
-                                            'Lights off@@EEG F4-A1': 0})
-                    ]),
-                    online_transform=transforms.ToTensor(),
-                    io_path='./datasets/processed/HMC/'
-                    )
+# class CrowdsourcedDataset(Dataset):
+#     def __init__(self, datapath='datasets/raw/Crowdsourced-npy/Crowdsource.npy', is_train=True):
+#         super().__init__()
+#         self.datapath = datapath
+#         self.is_train = is_train
+
+#         data = np.load(datapath, allow_pickle=True)
+
+#         if self.is_train:
+#             self.data = data.item().get('All_train_data')    # (10403, 14, 256)
+#             self.label = data.item().get('All_train_label')  # (10403,)
+#         else:
+#             self.data = data.item().get('test_data')         # (1893, 14, 256)
+#             self.label = data.item().get('test_label')       # (1893,)
+    
+#     def __len__(self):
+#         return len(self.label)
+    
+#     def __getitem__(self, index):
+#         sample = self.data[index]
+#         label = self.label[index]
+#         return sample, label
+    
+
+# class IsrucDataset_torcheeg_load(Dataset):
+#     def __init__(self):
+#         self.original_dataset = torcheeg.datasets.ISRUCDataset(root_path='./datasets/raw/ISRUC-SLEEP', sfreq=100,
+#             channels=['F3-M2', 'C3-M2', 'O1-M2', 'F4-M1', 'C4-M1', 'O2-M1'],
+#             label_transform=transforms.Compose([
+#                 transforms.Select('label'),
+#                 transforms.Mapping({'Sleep stage W': 0,
+#                                     'Sleep stage N1': 1,
+#                                     'Sleep stage N2': 2,
+#                                     'Sleep stage N3': 3,
+#                                     'Sleep stage R': 4,
+#                                     'Lights off@@EEG F4-A1': 5})
+#             ]),
+#             # online_transform=transforms.Compose([
+#             #             transforms.MeanStdNormalize(),
+#             #             transforms.ToTensor(),
+#             #         ]),
+#             # io_path='./datasets/processed/ISRUC-SLEEP_w_MeanStdNormalize/'
+
+#             online_transform=transforms.ToTensor(),
+#             io_path='./datasets/processed/ISRUC-SLEEP5'
+
+#             # online_transform=torchvision.transforms.Compose([        # Mapping: Lights off: 5
+#             #     torchvision.transforms.ToTensor(),
+#             #     torchvision.transforms.Normalize((0.1307,), (0.3081,))
+#             # ]),
+#             # io_path='./datasets/processed/ISRUC-SLEEP_tvtrans'
+#             )
         
-        train_size = int(0.1 * len(self.original_dataset))
-        test_size = len(self.original_dataset) - train_size
-        self.original_dataset, _ = random_split(self.original_dataset, [train_size, test_size])
-        self.data, self.labels = self._extract_data_and_labels()
-    
-    def _extract_data_and_labels(self):
-        data = []
-        labels = []
-        for sample in self.original_dataset:
-            data.append(sample[0].numpy())  # Extract EEG data
-            labels.append(sample[1])        # Extract label
-        return np.array(data), np.array(labels)
-    
-    def __len__(self):
-        return len(self.labels)
+#         train_size = int(0.1 * len(self.original_dataset))
+#         test_size = len(self.original_dataset) - train_size
+#         self.original_dataset, _ = random_split(self.original_dataset, [train_size, test_size])
 
-    def __getitem__(self, idx):
-        # Return the resampled data and labels
-        eeg_data = torch.tensor(self.data[idx], dtype=torch.float32)
-        label = torch.tensor(self.labels[idx], dtype=torch.long)
-        return eeg_data, label
+#         self.valid_indices = self._get_valid_indices()
+#         self.data, self.labels = self._extract_data_and_labels()
+#         # self.data, self.labels = self._apply_undersampling()
 
+#     def _get_valid_indices(self):
+#         valid_indices = []
+#         for i in range(len(self.original_dataset)):
+#             a = self.original_dataset[i]
+#             if (a[0] != 0).all():
+#                 valid_indices.append(i)
+#         return valid_indices
+    
+#     def _extract_data_and_labels(self):
+#         data = []
+#         labels = []
+#         for idx in self.valid_indices:
+#             sample = self.original_dataset[idx]
+#             data.append(sample[0].numpy())  # Extract EEG data
+#             labels.append(sample[1])        # Extract label
+#         return np.array(data), np.array(labels)
+    
+#     def _apply_undersampling(self):
+#         # Reshape data to 2D for RandomUnderSampler (samples, features)
+#         n_samples, n_channels, n_timesteps = self.data.shape
+#         data_reshaped = self.data.reshape(n_samples, -1)  # Flatten the EEG data
+        
+#         # Apply RandomUnderSampler
+#         rus = RandomUnderSampler(random_state=42)
+#         data_resampled, labels_resampled = rus.fit_resample(data_reshaped, self.labels)
+        
+#         # Reshape data back to original shape
+#         data_resampled = data_resampled.reshape(-1, n_channels, n_timesteps)
+#         return data_resampled, labels_resampled
+
+#     def __len__(self):
+#         return len(self.labels)
+
+#     def __getitem__(self, idx):
+#         # original_idx = self.valid_indices[idx]
+#         # return self.original_dataset[original_idx]
+#         eeg_data = torch.tensor(self.data[idx], dtype=torch.float32)
+#         label = torch.tensor(self.labels[idx], dtype=torch.long)
+#         return eeg_data, label
+    
 
 class SeedVDataset(BaseEEGDataset):
     def __init__(self, args, data_path="datasets/raw/SEED-V/EEG_raw/"):

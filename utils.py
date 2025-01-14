@@ -16,10 +16,14 @@ def prepare_dataset(args):
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
     elif args.dataset == "isruc":
-        dataset = IsrucDataset(data_dir='datasets/raw/ISRUC-mat', label_dir='datasets/raw/ISRUC-SLEEP/Subgroup_1', subject_ids=list(range(1, 101)))
+        dataset = IsrucDataset(data_dir='datasets/raw/ISRUC-mat/Subgroup_1', label_dir='datasets/raw/ISRUC-SLEEP/Subgroup_1', subject_ids=list(range(1, 101)))
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+
+    elif args.dataset == "crowd":
+        train_dataset = CrowdsourcedDataset(is_train=True)
+        test_dataset = CrowdsourcedDataset(is_train=False)
     elif args.dataset == "sleepedf":
         dataset = SleepedfDataset()   # 用 torcheeg.datasets.SleepEDFxDataset 读取
 
@@ -70,21 +74,6 @@ def prepare_dataset(args):
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=True)
 
     return train_loader, test_loader
-
-
-def focal_loss(y_hat, y, alpha=0.8, gamma=0.7):
-    # y_hat: (N, 1)
-    # y: (N, 1)
-    # alpha: float
-    # gamma: float
-    y_hat = y_hat.view(-1, 1)
-    y = y.view(-1, 1)
-    # y_hat = torch.clamp(y_hat, -75, 75)
-    p = torch.sigmoid(y_hat)
-    loss = -alpha * (1 - p) ** gamma * y * torch.log(p) - (1 - alpha) * p**gamma * (
-        1 - y
-    ) * torch.log(1 - p)
-    return loss.mean()
 
 
 class FocalLoss(nn.Module):
