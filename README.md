@@ -16,10 +16,15 @@ pip install -r requirements.txt
 
 Download the datasets:
 - [DREAMER](https://zenodo.org/records/546113), 
-- [Simultaneous Task EEG Workload (STEW)](https://ieee-dataport.org/open-access/stew-simultaneous-task-eeg-workload-dataset), 
+- [Simultaneous Task EEG Workload (STEW)](https://ieee-dataport.org/open-access/stew-simultaneous-task-eeg-workload-dataset),
+- [ISRUC-SLEEP](https://sleeptight.isr.uc.pt/?page_id=76) 
+
+- [SEED-V Dataset](https://bcmi.sjtu.edu.cn/home/seed/seed-v.html) 
+
+- [Lehner2021](https://www.research-collection.ethz.ch/handle/20.500.11850/458693)
 - [Crowdsourced](https://osf.io/9bvgh/), or use the processed version in [EEG2Rep](https://github.com/Navidfoumani/EEG2Rep) with this [link](https://drive.google.com/drive/folders/1KQyST6VJffWWD8r60AjscBy6MHLnT184?usp=sharing)
 - [TUAB & TUEV](https://isip.piconepress.com/projects/nedc/html/tuh_eeg/), 
-- [SEED-V Dataset](https://bcmi.sjtu.edu.cn/home/seed/seed-v.html) 
+
 
 Put them in the folder:
 ```
@@ -42,16 +47,22 @@ IBEEG/
                 |_ DREAMER.mat
             |_ STEW Dataset/
                 |_ *.txt
-            |_ SleepEDF/
-                |_ sleep-edf-database-expanded-1.0.0/
-                    |_ sleep-cassette/
             |_ ISRUC-SLEEP/
                 |_ Subgroup_1/
                     |_ 1/
                         |_ 1.rec
                         |_ 1.txt
-                |_ Subgroup_2/
-                |_ Subgroup_3/
+            |_ ISRUC-mat/
+                |_ Subgroup_1/
+                    |_ *.mat
+            |_ Hinss2021/
+                |_ P01/
+                    |_ S1/
+                    |_ ...
+
+            |_ SleepEDF/
+                |_ sleep-edf-database-expanded-1.0.0/
+                    |_ sleep-cassette/
             |_ SEED-V/
                 |_ EEG_raw/
             |_ Crowsourced/
@@ -64,6 +75,11 @@ IBEEG/
                 |_ edf/
                     |_ train/
                     |_ eval/
+            |_ Lehner2021/
+                |_ Cybathlon_Data/
+                    |_ Session [X]/
+                        |_ aC/
+                            |_ *.eeg
 ```
 
 Preprocess for TUAB and TUEV datasets.
@@ -88,12 +104,14 @@ For Sleep Dataset:
 ```
 nohup python -u main.py --dataset isruc --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:5 > output_isruc_a-3_b-4_l-3000.log 2>&1 &
 
+nohup python -u main.py --dataset isruc --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:7 > output_isruc_a-3_b-4_l-1200.log 2>&1 &
+
 
 nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:0 > output_sleepedf1.log 2>&1 &
 nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:5 > output_sleepedf1.log 2>&1 &
 nohup python -u main.py --dataset sleepedf --epoch 100 --lr 1e-4 --alpha 1e-5 --beta 1e-5 --batch_size 32 --device cuda:2 > output_sleepedf3.log 2>&1 &
 
-nohup python -u main.py --dataset hmc --epoch 50 --lr 1e-3 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:3 > output_hmc1.log 2>&1 &
+nohup python -u main.py --dataset hmc --epoch 100 --lr 1e-3 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:5 > output_hmc_cnn2.log 2>&1 &
 ```
 
 

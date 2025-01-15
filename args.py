@@ -153,8 +153,8 @@ def parse_args():
         elif args.dataset in ['tuab', 'tuev']:
             args.freq_rate = 200
         elif args.dataset in ['isruc']:
-            args.freq_rate = 100
-        elif args.dataset in ['isruc', 'sleepedf', 'hmc']:
+            args.freq_rate = 40
+        elif args.dataset in ['sleepedf', 'hmc']:
             args.freq_rate = 100
 
     if args.d_model is None:

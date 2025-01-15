@@ -21,9 +21,9 @@ def prepare_dataset(args):
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
-    elif args.dataset == "crowd":
-        train_dataset = CrowdsourcedDataset(is_train=True)
-        test_dataset = CrowdsourcedDataset(is_train=False)
+    # elif args.dataset == "crowd":
+    #     train_dataset = CrowdsourcedDataset(is_train=True)
+    #     test_dataset = CrowdsourcedDataset(is_train=False)
     elif args.dataset == "sleepedf":
         dataset = SleepedfDataset()   # 用 torcheeg.datasets.SleepEDFxDataset 读取
 

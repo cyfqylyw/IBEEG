@@ -159,7 +159,7 @@ class IsrucDataset(Dataset):
             # 提取6个通道的数据
             channels = ['F3_A2', 'C3_A2', 'O1_A2', 'F4_A1', 'C4_A1', 'O2_A1']
             eeg_data = np.stack([mat_data[channel] for channel in channels], axis=1)  # (num, 6, 6000)
-            eeg_data = eeg_data[:, :, ::2]    # (num, 6, 3000)
+            eeg_data = eeg_data[:, :, ::5]    # (num, 6, 3000) (num, 6, 1200)
             
             # 加载标签文件
             label_file = os.path.join(label_dir, f'{subject_id}/{subject_id}_1.txt')
@@ -454,7 +454,8 @@ class SeedVDataset(BaseEEGDataset):
         }
 
         # Iterate through all .cnt files in the data directory
-        for filename in os.listdir(self.data_path):
+        for filename in os.listdir(self.data_path)[:1]:
+            print(filename)
             if filename.endswith('.cnt'):
                 file_path = os.path.join(self.data_path, filename)
                 
