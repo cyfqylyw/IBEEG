@@ -159,7 +159,7 @@ class IsrucDataset(Dataset):
             # 提取6个通道的数据
             channels = ['F3_A2', 'C3_A2', 'O1_A2', 'F4_A1', 'C4_A1', 'O2_A1']
             eeg_data = np.stack([mat_data[channel] for channel in channels], axis=1)  # (num, 6, 6000)
-            eeg_data = eeg_data[:, :, ::5]    # (num, 6, 3000) (num, 6, 1200)
+            eeg_data = eeg_data[:, :, ::2]    # (num, 6, 3000) (num, 6, 1200)
             
             # 加载标签文件
             label_file = os.path.join(label_dir, f'{subject_id}/{subject_id}_1.txt')
@@ -183,6 +183,87 @@ class IsrucDataset(Dataset):
     def __getitem__(self, idx):
         data = self.data[idx]
         label = self.labels[idx]
+        data = torch.tensor(data, dtype=torch.float32)
+        label = torch.tensor(label, dtype=torch.long)
+        return data, label
+
+
+class HinssDataset(Dataset):
+    def __init__(self, filepath='./datasets/raw/Hinss2021/'):
+        self.filepath = filepath
+        self.data = []  # 存储 EEG 数据
+        self.labels = []  # 存储标签
+
+        for subject_id in range(1, 16):
+            for sess in [1, 2]:
+                sid = ('0' + str(subject_id))[-2:]
+
+                for label in ['diff', 'easy', 'med']:
+                    filename = os.path.join(filepath, f"P{sid}/S{str(sess)}/eeg/alldata_sbj{sid}_sess{str(sess)}_MATB{label}.set")
+
+                    if os.path.exists(filename):
+                        epochs = mne.io.read_epochs_eeglab(filename)
+                        eeg_data = epochs.get_data()
+
+                        label_id = 0 if label=='easy' else (1 if label=='med' else 2)
+                        self.data.append(eeg_data)
+                        self.labels.extend([label_id] * eeg_data.shape[0])  # 每个分段对应一个标签
+
+        self.data = torch.tensor(np.concatenate(self.data, axis=0), dtype=torch.float32)  # 形状: (N, 61, 500)
+        self.labels = torch.tensor(self.labels, dtype=torch.long)  # 形状: (N,)
+    
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        return self.data[idx], self.labels[idx]
+
+
+class BNCI2014001_Dataset(Dataset):
+    def __init__(self):
+        super().__init__()
+        self.X_data = np.load('datasets/processed/BNCI2014001/X_data.npy')[:, :, :1000]
+        self.y_label = np.load('datasets/processed/BNCI2014001/y_labels.npy')
+
+        self.mean = np.mean(self.X_data, axis=(0, 1), keepdims=True)
+        self.std = np.std(self.X_data, axis=(0, 1), keepdims=True)
+        self.X_data = (self.X_data - self.mean) / self.std
+
+        min_val = np.min(self.X_data, axis=(0, 1), keepdims=True)
+        max_val = np.max(self.X_data, axis=(0, 1), keepdims=True)
+        self.X_data = (self.X_data - min_val) / (max_val - min_val)
+    
+    def __len__(self):
+        return len(self.y_label)
+    
+    def __getitem__(self, idx):
+        data = self.X_data[idx]
+        label = self.y_label[idx]
+        data = torch.tensor(data, dtype=torch.float32)
+        label = torch.tensor(label, dtype=torch.long)
+        return data, label
+    
+
+class BNCI2015001_Dataset(Dataset):
+    def __init__(self):
+        super().__init__()
+        self.X_data = np.load('datasets/processed/BNCI2015001/X_data.npy')[:, :, :2560]
+        self.y_label = np.load('datasets/processed/BNCI2015001/y_labels.npy')
+
+        self.mean = np.mean(self.X_data, axis=(0, 1), keepdims=True)
+        self.std = np.std(self.X_data, axis=(0, 1), keepdims=True)
+        self.X_data = (self.X_data - self.mean) / self.std
+
+        min_val = np.min(self.X_data, axis=(0, 1), keepdims=True)
+        max_val = np.max(self.X_data, axis=(0, 1), keepdims=True)
+        self.X_data = (self.X_data - min_val) / (max_val - min_val)
+    
+    def __len__(self):
+        return len(self.y_label)
+    
+    def __getitem__(self, idx):
+        data = self.X_data[idx]
+        label = self.y_label[idx]
         data = torch.tensor(data, dtype=torch.float32)
         label = torch.tensor(label, dtype=torch.long)
         return data, label
@@ -254,7 +335,7 @@ class SleepEdf_EEGDataset(BaseEEGDataset):
 
 class SleepedfDataset(Dataset):
     def __init__(self):
-        self.original_dataset = SleepEDFxDataset(root_path='./datasets/raw/SleepEDF/sleep-edf-database-expanded-1.0.0/', 
+        self.original_dataset = SleepEDFxDataset(root_path='./datasets/raw/SleepEDF/sleep-edf-expanded/', 
             sfreq=100,
             channels=['EEG Fpz-Cz', 'EEG Pz-Oz'],
             label_transform=transforms.Compose([

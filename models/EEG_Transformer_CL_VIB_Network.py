@@ -25,35 +25,45 @@ class EEG_Transformer_CL_VIB_Network(nn.Module):
             nn.Linear(n_feature, self.feat_dim),
             nn.BatchNorm1d(self.feat_dim),
             nn.ReLU(True),
+            nn.Dropout(0.2),
             nn.Linear(self.feat_dim, self.feat_dim))
         self.fc_feature_ft = nn.Sequential(
             nn.Linear(n_feature, self.feat_dim),
             nn.BatchNorm1d(self.feat_dim),
             nn.ReLU(True),
+            nn.Dropout(0.2),
             nn.Linear(self.feat_dim, self.feat_dim))
         self.fc_feature_wt = nn.Sequential(
             nn.Linear(n_feature, self.feat_dim),
             nn.BatchNorm1d(self.feat_dim),
             nn.ReLU(True),
+            nn.Dropout(0.2),
             nn.Linear(self.feat_dim, self.feat_dim))
         
         self.fc_projector = nn.Sequential(
             nn.Linear(self.feat_dim, self.proj_dim),
+            nn.BatchNorm1d(self.proj_dim),
             nn.ReLU(True),
+            nn.Dropout(0.2),
             nn.Linear(self.proj_dim, self.proj_dim))
         self.fc_projector_ft = nn.Sequential(
             nn.Linear(self.feat_dim, self.proj_dim),
+            nn.BatchNorm1d(self.proj_dim),
             nn.ReLU(True),
+            nn.Dropout(0.2),
             nn.Linear(self.proj_dim, self.proj_dim))
         self.fc_projector_wt = nn.Sequential(
             nn.Linear(self.feat_dim, self.proj_dim),
+            nn.BatchNorm1d(self.proj_dim),
             nn.ReLU(True),
+            nn.Dropout(0.2),
             nn.Linear(self.proj_dim, self.proj_dim))
         
         self.fc_feature_all = nn.Sequential(
             nn.Linear(self.feat_dim * 3, self.feat_dim),
             nn.BatchNorm1d(self.feat_dim),
             nn.ReLU(True),
+            nn.Dropout(0.2),
             nn.Linear(self.feat_dim, self.feat_dim),
             nn.BatchNorm1d(self.feat_dim),  # 添加 BatchNorm
             nn.ReLU(True))

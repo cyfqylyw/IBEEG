@@ -19,7 +19,7 @@ def parse_args():
                         help="dataset to train and evluate",
                         type=str, 
                         default='dreamer', 
-                        choices=['dreamer', 'stew', 'crowd', 'isruc', 'sleepedf', 'hmc', 'seedv', 'tuab', 'tuev'])
+                        choices=['dreamer', 'stew', 'crowd', 'isruc', 'hinss', 'b2014', 'b2015', 'sleepedf', 'hmc', 'seedv', 'tuab', 'tuev'])
     parser.add_argument("--model_name",
                         help="name of the model to use",
                         type=str,
@@ -112,6 +112,9 @@ def parse_args():
         "stew": 9,
         "crowd": 2,
         "isruc": 5,
+        "hinss": 3,
+        "b2014": 4,
+        "b2015": 2,
         "sleepedf": 5,
         "hmc": 5,
         "seedv": 5,
@@ -125,6 +128,9 @@ def parse_args():
         "stew": 14,
         "crowd": 14,
         "isruc": 6,
+        "hinss": 61,
+        "b2014": 22,
+        "b2015": 13,
         "sleepedf": 1,  # 2
         "hmc": 4,
         "seedv": 62,
@@ -134,13 +140,17 @@ def parse_args():
     args.num_channel = num_channel_dict[args.dataset]
 
     if args.chunk_second is None:
-        if args.dataset in ['dreamer', 'stew', 'crowd']:
+        if args.dataset in ['dreamer', 'stew', 'crowd', 'hinss']:
             args.chunk_second = 2
         elif args.dataset in ['seedv']:
             args.chunk_second = 1
         elif args.dataset in ['tuab']:
             args.chunk_second = 10
         elif args.dataset in ['tuev']:
+            args.chunk_second = 5
+        elif args.dataset in ['b2014']:
+            args.chunk_second = 4
+        elif args.dataset in ['b2015']:
             args.chunk_second = 5
         elif args.dataset in ['isruc', 'sleepedf', 'hmc']:
             args.chunk_second = 30
@@ -153,7 +163,11 @@ def parse_args():
         elif args.dataset in ['tuab', 'tuev']:
             args.freq_rate = 200
         elif args.dataset in ['isruc']:
-            args.freq_rate = 40
+            args.freq_rate = 100
+        elif args.dataset in ['b2014', 'hinss']:
+            args.freq_rate = 250
+        elif args.dataset in ['b2015']:
+            args.freq_rate = 512
         elif args.dataset in ['sleepedf', 'hmc']:
             args.freq_rate = 100
 

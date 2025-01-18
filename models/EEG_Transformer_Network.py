@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .base_model import EEG_Encoder
+from .base_model import EEG_Encoder, EEG_Encoder2
 
 
 class EEG_Transformer_Network(nn.Module):
     def __init__(self, args):
         super(EEG_Transformer_Network, self).__init__()
-        self.eeg_encoder = EEG_Encoder(args)
+        self.eeg_encoder = EEG_Encoder2(args)
 
         self.num_channels = args.num_channel if args.selected_channels is None else len(args.selected_channels)
         input_shape = (args.batch_size, self.num_channels, args.chunk_second * args.freq_rate)

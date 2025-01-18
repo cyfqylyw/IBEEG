@@ -58,7 +58,9 @@ IBEEG/
             |_ Hinss2021/
                 |_ P01/
                     |_ S1/
-                    |_ ...
+
+            |_ BNCI2014001/
+                |_ *.mat
 
             |_ SleepEDF/
                 |_ sleep-edf-database-expanded-1.0.0/
@@ -98,14 +100,24 @@ nohup python -u main.py --dataset dreamer --overlap 0 --epoch 100 --lr 1e-4 --al
 
 nohup python -u main.py --dataset stew --overlap 0 --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:3 > output_stew.log 2>&1 &
 <!-- acc: 0.8000 -->
+
+nohup python -u main.py --dataset isruc --epoch 50 --lr 5e-5 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 > output_isruc_a-3_b-4_l-3000.log 2>&1 &
+<!-- acc: 0.7302 -->
+
 ```
 
 For Sleep Dataset:
 ```
-nohup python -u main.py --dataset isruc --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:5 > output_isruc_a-3_b-4_l-3000.log 2>&1 &
+python main.py --dataset hinss --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_CNN_Network
+python main.py --dataset hinss --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_Transformer_Network
 
-nohup python -u main.py --dataset isruc --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:7 > output_isruc_a-3_b-4_l-1200.log 2>&1 &
 
+nohup python -u main.py --dataset b2014 --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_CNN_Network > output_b2014_cnn.log 2>&1 &
+nohup python -u main.py --dataset b2014 --epoch 100 --lr 1e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 512 --device cuda:5 --model_name EEG_Transformer_Network > output_b2014_t.log 2>&1 &
+
+
+nohup python -u main.py --dataset b2015 --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_CNN_Network > output_b2015_cnn.log 2>&1 &
+nohup python -u main.py --dataset b2015 --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:1 --model_name EEG_Transformer_Network > output_b2015_t.log 2>&1 &
 
 nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:0 > output_sleepedf1.log 2>&1 &
 nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:5 > output_sleepedf1.log 2>&1 &

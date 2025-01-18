@@ -20,6 +20,22 @@ def prepare_dataset(args):
         train_size = int(0.8 * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+    elif args.dataset == "hinss":
+        dataset = HinssDataset()
+        train_size = int(0.8 * len(dataset))
+        test_size = len(dataset) - train_size
+        train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+
+    elif args.dataset == "b2014":
+        dataset = BNCI2014001_Dataset()
+        train_size = int(0.8 * len(dataset))
+        test_size = len(dataset) - train_size
+        train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+    elif args.dataset == "b2015":
+        dataset = BNCI2015001_Dataset()
+        train_size = int(0.8 * len(dataset))
+        test_size = len(dataset) - train_size
+        train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
     # elif args.dataset == "crowd":
     #     train_dataset = CrowdsourcedDataset(is_train=True)

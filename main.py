@@ -9,8 +9,10 @@ from args import args
 from trainer.test import test
 from utils import prepare_dataset, FocalLoss
 
-# seed = 3407
-seed = 1234
+import warnings
+warnings.filterwarnings('ignore')
+
+seed = 3407
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
