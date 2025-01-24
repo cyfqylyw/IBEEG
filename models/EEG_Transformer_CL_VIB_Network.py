@@ -104,6 +104,10 @@ class EEG_Transformer_CL_VIB_Network(nn.Module):
         return mu + eps * std
     
     def forward(self, eeg, eeg_ft, eeg_wt, num_sample=1):
+        eeg = (eeg - eeg.mean(dim=2, keepdim=True)) / eeg.std(dim=2, keepdim=True)
+        eeg_ft = (eeg_ft - eeg_ft.mean(dim=2, keepdim=True)) / eeg_ft.std(dim=2, keepdim=True)
+        eeg_wt = (eeg_wt - eeg_wt.mean(dim=2, keepdim=True)) / eeg_wt.std(dim=2, keepdim=True)
+
         # feature representation for classification
         eeg_feature = self.fc_feature(self.eeg_encoder(eeg))
         eeg_feature_ft = self.fc_feature_ft(self.eeg_encoder_ft(eeg_ft))

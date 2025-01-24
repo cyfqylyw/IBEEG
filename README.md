@@ -93,7 +93,7 @@ python preprocess_tuev.py
 
 ## Usage
 
-For EEG2Rep Dataset:
+
 ```
 nohup python -u main.py --dataset dreamer --overlap 0 --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:0 > output_dreamer4.log 2>&1 &
 <!-- acc: 0.6845 -->
@@ -104,17 +104,15 @@ nohup python -u main.py --dataset stew --overlap 0 --epoch 100 --lr 1e-4 --alpha
 nohup python -u main.py --dataset isruc --epoch 50 --lr 5e-5 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 > output_isruc_a-3_b-4_l-3000.log 2>&1 &
 <!-- acc: 0.7302 -->
 
+nohup python -u main.py --dataset hinss --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:7 > output_hinss.log 2>&1 &
+<!-- acc: 0.5164 -->
 ```
+
 
 For Sleep Dataset:
 ```
-python main.py --dataset hinss --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_CNN_Network
-python main.py --dataset hinss --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_Transformer_Network
-
-
 nohup python -u main.py --dataset b2014 --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_CNN_Network > output_b2014_cnn.log 2>&1 &
 nohup python -u main.py --dataset b2014 --epoch 100 --lr 1e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 512 --device cuda:5 --model_name EEG_Transformer_Network > output_b2014_t.log 2>&1 &
-
 
 nohup python -u main.py --dataset b2015 --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_CNN_Network > output_b2015_cnn.log 2>&1 &
 nohup python -u main.py --dataset b2015 --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:1 --model_name EEG_Transformer_Network > output_b2015_t.log 2>&1 &
@@ -130,7 +128,7 @@ nohup python -u main.py --dataset hmc --epoch 100 --lr 1e-3 --alpha 1e-4 --beta 
 
 For TUH Dataset:
 ```
-nohup python -u main.py --dataset tuab --epoch 50 --lr 1e-3 --device cuda:4 --model_name EEG_Transformer_Network > output_tuab_T.log 2>&1 &
+nohup python -u main.py --dataset tuab --epoch 50 --lr 1e-3 --device cuda:1 --model_name EEG_Transformer_Network > output_tuab_T.log 2>&1 &
 
 nohup python -u main.py --dataset tuab --epoch 50 --batch_size 32 --lr 1e-3 --device cuda:2 > output_tuab.log 2>&1 &
 

@@ -1,4 +1,5 @@
 import os
+import re
 import mne
 import numpy as np
 import pandas as pd
@@ -7,8 +8,6 @@ import pickle
 import glob
 from collections import defaultdict
 from scipy.signal import resample
-
-import torchvision
 
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
@@ -191,8 +190,8 @@ class IsrucDataset(Dataset):
 class HinssDataset(Dataset):
     def __init__(self, filepath='./datasets/raw/Hinss2021/'):
         self.filepath = filepath
-        self.data = []  # 存储 EEG 数据
-        self.labels = []  # 存储标签
+        self.data = []
+        self.labels = []
 
         for subject_id in range(1, 16):
             for sess in [1, 2]:
@@ -218,6 +217,62 @@ class HinssDataset(Dataset):
     def __getitem__(self, idx):
         return self.data[idx], self.labels[idx]
 
+
+# class LehnerDataset(Dataset):
+
+
+# class HinssDataset(Dataset):
+#     def __init__(self, filepath='./datasets/raw/Hinss2021/'):
+#         self.filepath = filepath
+#         self.data = []
+#         self.labels = []
+#         self.event_id = dict(easy=1, medium=2, difficult=3, rest=4)
+
+#         TASK_TO_EVENTID = dict(RS='rest', MATBeasy='easy', MATBmed='medium', MATBdiff='difficult')
+
+#         subject_data = {}
+#         for subject_id in range(1, 16):
+#             for sess in [1, 2]:
+#                 sid = ('0' + str(subject_id))[-2:]
+
+#                 for label in ['diff', 'easy', 'med']:
+#                     filename = os.path.join(filepath, f"P{sid}/S{str(sess)}/eeg/alldata_sbj{sid}_sess{str(sess)}_MATB{label}.set")
+
+#                     if os.path.exists(filename):
+#                         epochs = mne.io.read_epochs_eeglab(filename, verbose=False)
+#                         event_id = TASK_TO_EVENTID[list(epochs.event_id.keys())[0]]
+#                         epochs.event_id = {event_id : self.event_id[event_id]}
+#                         epochs.events[:,2] = epochs.event_id[event_id]
+#                         continuous_data = np.swapaxes(epochs.get_data(),0,1).reshape((len(epochs.info['chs']),-1))
+#                         raw = mne.io.RawArray(data=continuous_data, info=epochs.info, verbose=False, first_samp=1)
+#                         # XXX use standard electrode layout rather than invidividual positions
+#                         # raw.set_montage(epochs.get_montage())
+#                         raw.set_montage('standard_1005')
+#                         events = epochs.events.copy()
+#                         evt_desc = dict(zip(epochs.event_id.values(),epochs.event_id.keys()))
+#                         annot = mne.annotations_from_events(events, raw.info['sfreq'], event_desc=evt_desc, first_samp=1)
+#                         raw.set_annotations(annot)
+
+#                         if sid in subject_data:
+#                             subject_data[sid][0].append(raw)
+#                         else:
+#                             subject_data[sid] = {0 : raw}
+
+#                         eeg_data = epochs.get_data()
+
+#                         label_id = 0 if label=='easy' else (1 if label=='med' else 2)
+#                         self.data.append(eeg_data)
+#                         self.labels.extend([label_id] * eeg_data.shape[0])  # 每个分段对应一个标签
+
+#         self.data = torch.tensor(np.concatenate(self.data, axis=0), dtype=torch.float32)  # 形状: (N, 61, 500)
+#         self.labels = torch.tensor(self.labels, dtype=torch.long)  # 形状: (N,)
+    
+#     def __len__(self):
+#         return len(self.labels)
+
+#     def __getitem__(self, idx):
+#         return self.data[idx], self.labels[idx]
+    
 
 class BNCI2014001_Dataset(Dataset):
     def __init__(self):

@@ -109,7 +109,8 @@ class EEG_Encoder2(nn.Module):
 
         self.batch_norm_conv = nn.BatchNorm1d(64) # self.num_channels
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=args.d_model, nhead=args.nhead, batch_first=True)
-        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=6)
+        print('* num_layers = 1')
+        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=1)
         self.dropout_transformer = nn.Dropout(p=0.5)
         
     def forward(self, x):   # input: torch.Size([batch_size, num_channel, chunk_second * freq_rate])
