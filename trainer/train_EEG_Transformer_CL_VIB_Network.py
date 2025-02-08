@@ -25,8 +25,14 @@ def train(model, train_loader, test_loader, criterion, optimizer, args):
             eeg = eeg.float().to(args.device)
             label = label.long().to(args.device)
 
+            if args.dataset in ['hinss', 'isruc']:
+                eeg = (eeg - eeg.mean(dim=2, keepdim=True)) / eeg.std(dim=2, keepdim=True)
+                eeg_ft = (eeg_ft - eeg_ft.mean(dim=2, keepdim=True)) / eeg_ft.std(dim=2, keepdim=True)
+                eeg_wt = (eeg_wt - eeg_wt.mean(dim=2, keepdim=True)) / eeg_wt.std(dim=2, keepdim=True)
+
             (mu, std), logit, eeg_projection, eeg_projection_ft, eeg_projection_wt = model(eeg, eeg_ft, eeg_wt)
             class_loss = criterion(logit, label)
+
             cont_loss = nt_xent_loss(eeg_projection, eeg_projection_ft, args.temperature) + nt_xent_loss(eeg_projection, eeg_projection_wt, args.temperature)
             info_loss = -0.5*(1+2*std.log()-mu.pow(2)-std.pow(2)).sum(1).mean() # .div(math.log(2))
             total_loss = class_loss + args.alpha * cont_loss + args.beta * info_loss

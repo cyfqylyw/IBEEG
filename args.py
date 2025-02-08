@@ -24,7 +24,9 @@ def parse_args():
                         help="name of the model to use",
                         type=str,
                         default='EEG_Transformer_CL_VIB_Network',
-                        choices=['EEG_CNN_Network', 'EEG_Transformer_Network', 'EEG_Transformer_VIB_Network', 'EEG_Transformer_CL_VIB_Network']
+                        choices=['EEG_CNN_Network', 'EEG_Transformer_Network', 'EEG_Transformer_VIB_Network', 
+                                 'EEG_Transformer_CL_VIB_Network', 'EEG_Transformer_CL_VIB_Network_wo_FTV', 
+                                 'EEG_Transformer_CL_VIB_Network_wo_WTV', 'EEG_Transformer_CL_Network']
                         )
     parser.add_argument("--batch_size", 
                         help="batch size",

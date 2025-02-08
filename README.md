@@ -1,14 +1,14 @@
 # IBEEG
 
-Code implementation for **IBEEG**.
+Code implementation for **Deep Multiview Information Bottleneck Framework for Electroencephalography Recognition**.
 
 
 
 ## Requirements
 
 ```
-conda create -n VIBEEG python=3.9
-conda activate VIBEEG
+conda create -n IBEEG python=3.9
+conda activate IBEEG
 pip install -r requirements.txt
 ```
 
@@ -18,7 +18,7 @@ Download the datasets:
 - [DREAMER](https://zenodo.org/records/546113), 
 - [Simultaneous Task EEG Workload (STEW)](https://ieee-dataport.org/open-access/stew-simultaneous-task-eeg-workload-dataset),
 - [ISRUC-SLEEP](https://sleeptight.isr.uc.pt/?page_id=76) 
-
+- [Hinss2021](https://zenodo.org/records/4917218)
 - [SEED-V Dataset](https://bcmi.sjtu.edu.cn/home/seed/seed-v.html) 
 
 - [Lehner2021](https://www.research-collection.ethz.ch/handle/20.500.11850/458693)
@@ -92,65 +92,34 @@ python preprocess_tuev.py
 ```
 
 ## Usage
-
-
+For main experiment:
 ```
-nohup python -u main.py --dataset dreamer --overlap 0 --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:0 > output_dreamer4.log 2>&1 &
+nohup python -u main.py --dataset dreamer --overlap 0 --epochs 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:0 > output_dreamer.log 2>&1 &
+nohup python -u main.py --dataset dreamer --overlap 0 --epochs 100 --lr 5e-5 --alpha 1e-3 --beta 1e-3 --model_name EEG_Transformer_CL_Network --device cuda:0 > output_dreamer_abla_wo_IB.log 2>&1 &
+nohup python -u main.py --dataset dreamer --overlap 0 --epochs 100 --lr 5e-5 --alpha 1e-3 --beta 1e-3 --model_name EEG_Transformer_Network --device cuda:2 > output_dreamer_abla_wo_both.log 2>&1 &
 <!-- acc: 0.6845 -->
 
-nohup python -u main.py --dataset stew --overlap 0 --epoch 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:3 > output_stew.log 2>&1 &
+nohup python -u main.py --dataset stew --overlap 0 --epochs 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:1 > output_stew.log 2>&1 &
+nohup python -u main.py --dataset stew --overlap 0 --epochs 100 --lr 5e-5 --alpha 1e-3 --beta 1e-3 --model_name EEG_Transformer_Network --device cuda:3 > output_stew_abla_wo_both.log 2>&1 &
 <!-- acc: 0.8000 -->
 
-nohup python -u main.py --dataset isruc --epoch 50 --lr 5e-5 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 > output_isruc_a-3_b-4_l-3000.log 2>&1 &
-<!-- acc: 0.7302 -->
+nohup python -u main.py --dataset isruc --epochs 40 --lr 5e-5 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 > output_isruc2.log 2>&1 &
+nohup python -u main.py --dataset isruc --epochs 10 --lr 5e-5 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --model_name EEG_Transformer_Network --device cuda:3 > output_isruc_abla_wo_both.log 2>&1 &
+<!-- acc: 0.7302 -->  > output_isruc_a-3_b-4_l-3000.log
 
-nohup python -u main.py --dataset hinss --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:7 > output_hinss.log 2>&1 &
+nohup python -u main.py --dataset hinss --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:1 > output_hinss.log 2>&1 &
+
+nohup python -u main.py --dataset hinss --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-5 --batch_size 256 --d_model 256 --device cuda:0 > output_hinss3.log 2>&1 &
 <!-- acc: 0.5164 -->
 ```
 
 
-For Sleep Dataset:
+For cross dataset evaluation:
+- Train on dreamer and test in STEW:
 ```
-nohup python -u main.py --dataset b2014 --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_CNN_Network > output_b2014_cnn.log 2>&1 &
-nohup python -u main.py --dataset b2014 --epoch 100 --lr 1e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 512 --device cuda:5 --model_name EEG_Transformer_Network > output_b2014_t.log 2>&1 &
-
-nohup python -u main.py --dataset b2015 --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 --model_name EEG_CNN_Network > output_b2015_cnn.log 2>&1 &
-nohup python -u main.py --dataset b2015 --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:1 --model_name EEG_Transformer_Network > output_b2015_t.log 2>&1 &
-
-nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --batch_size 32 --device cuda:0 > output_sleepedf1.log 2>&1 &
-nohup python -u main.py --dataset sleepedf --epoch 50 --lr 1e-4 --alpha 1e-4 --beta 1e-4 --batch_size 32 --device cuda:5 > output_sleepedf1.log 2>&1 &
-nohup python -u main.py --dataset sleepedf --epoch 100 --lr 1e-4 --alpha 1e-5 --beta 1e-5 --batch_size 32 --device cuda:2 > output_sleepedf3.log 2>&1 &
-
-nohup python -u main.py --dataset hmc --epoch 100 --lr 1e-3 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:5 > output_hmc_cnn2.log 2>&1 &
+python cross_dataset.py --dataset stew --epoch 10 --device cuda:0
 ```
-
-
-
-For TUH Dataset:
+- Train on STEW and test in DREAMER:
 ```
-nohup python -u main.py --dataset tuab --epoch 50 --lr 1e-3 --device cuda:1 --model_name EEG_Transformer_Network > output_tuab_T.log 2>&1 &
-
-nohup python -u main.py --dataset tuab --epoch 50 --batch_size 32 --lr 1e-3 --device cuda:2 > output_tuab.log 2>&1 &
-
-
-nohup python main.py --dataset tuev --epoch 50 --batch_size 32 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:3 > output_tuev.log 2>&1 &
-nohup python main.py --dataset tuev --epoch 50 --batch_size 32 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --model_name EEG_Transformer_Network --device cuda:3 > output_tuev_T.log 2>&1 &
+python cross_dataset.py --dataset dreamer --epoch 10 --device cuda:0
 ```
-
-
-
-
-For other:
-```
-python main.py --dataset seedv --resample True --freq_rate 128 --chunk_second 2 --epoch 50 --lr 1e-5
-```
-
-## Performances
-
-### 1. Performances on TUAB
-
-
-
-## Citation
-
-TBD

@@ -14,6 +14,9 @@ def train(model, train_loader, test_loader, criterion, optimizer, args):
             eeg = eeg.float().to(args.device)
             label = label.to(args.device)
 
+            if args.dataset in ['hinss', 'isruc']:
+                eeg = (eeg - eeg.mean(dim=2, keepdim=True)) / eeg.std(dim=2, keepdim=True)
+                
             optimizer.zero_grad()
             outputs = model(eeg)
             loss = criterion(outputs, label)

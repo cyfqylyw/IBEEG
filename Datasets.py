@@ -218,6 +218,25 @@ class HinssDataset(Dataset):
         return self.data[idx], self.labels[idx]
 
 
+class HarDataset(Dataset):
+    def __init__(self, is_train=True, filepath='./datasets/raw/HAR/'):
+        self.filepath = filepath
+        self.is_train = is_train
+        self.X_train = np.loadtxt(self.filepath + 'UCI HAR Dataset/train/X_train.txt')[:, :560]
+        self.y_train = np.loadtxt(self.filepath + 'UCI HAR Dataset/train/y_train.txt')
+        self.X_test = np.loadtxt(self.filepath + 'UCI HAR Dataset/test/X_test.txt')[:, :560]
+        self.y_test = np.loadtxt(self.filepath + 'UCI HAR Dataset/test/y_test.txt')
+    
+    def __len__(self):
+        return len(self.y_train) if self.is_train else len(self.y_test)
+    
+    def __getitem__(self, idx):
+        if self.is_train:
+            return self.X_train[idx], self.y_train[idx] - 1
+        else:
+            return self.X_test[idx], self.y_test[idx] - 1
+    
+
 # class LehnerDataset(Dataset):
 
 

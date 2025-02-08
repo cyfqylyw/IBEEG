@@ -26,6 +26,10 @@ def prepare_dataset(args):
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
+    # elif args.dataset == 'har':
+    #     train_dataset = HarDataset(is_train=True)
+    #     test_dataset = HarDataset(is_train=False)
+    
     elif args.dataset == "b2014":
         dataset = BNCI2014001_Dataset()
         train_size = int(0.8 * len(dataset))

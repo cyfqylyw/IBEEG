@@ -12,10 +12,12 @@ class EEG_Transformer_CL_VIB_Network(nn.Module):
         self.eeg_encoder = EEG_Encoder(args)
         self.eeg_encoder_ft = EEG_Encoder(args)
         self.eeg_encoder_wt = EEG_Encoder(args)
-
+        
         self.num_channels = args.num_channel if args.selected_channels is None else len(args.selected_channels)
         input_shape = (args.batch_size, self.num_channels, args.chunk_second * args.freq_rate)
         n_feature = self._get_feature_dim(shape=input_shape)
+
+        self.bn = nn.BatchNorm1d(self.num_channels)
         
         self.latent_dim = args.latent_dim
         self.feat_dim = args.feat_dim
@@ -104,9 +106,10 @@ class EEG_Transformer_CL_VIB_Network(nn.Module):
         return mu + eps * std
     
     def forward(self, eeg, eeg_ft, eeg_wt, num_sample=1):
-        eeg = (eeg - eeg.mean(dim=2, keepdim=True)) / eeg.std(dim=2, keepdim=True)
-        eeg_ft = (eeg_ft - eeg_ft.mean(dim=2, keepdim=True)) / eeg_ft.std(dim=2, keepdim=True)
-        eeg_wt = (eeg_wt - eeg_wt.mean(dim=2, keepdim=True)) / eeg_wt.std(dim=2, keepdim=True)
+        # dreamer 数据集不进行bn，其他要bn
+        # eeg = self.bn(eeg)
+        # eeg_ft = self.bn(eeg_ft)
+        # eeg_wt = self.bn(eeg_wt)
 
         # feature representation for classification
         eeg_feature = self.fc_feature(self.eeg_encoder(eeg))

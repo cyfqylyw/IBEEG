@@ -22,7 +22,7 @@ class EEG_Transformer_Network(nn.Module):
         return x.shape[1]
         
     def forward(self, x):
-        x = (x - x.mean(dim=2, keepdim=True)) / x.std(dim=2, keepdim=True)
+        # x = (x - x.mean(dim=2, keepdim=True)) / x.std(dim=2, keepdim=True)
         x = self.bn(x)
         x = self.eeg_encoder(x)
         x = F.relu(self.fc1(x))

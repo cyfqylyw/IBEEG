@@ -26,7 +26,7 @@ class TemporalConv(nn.Module):
         super().__init__()
         self.dataset = args.dataset 
 
-        if self.dataset in ['dreamer', 'stew', 'isruc', 'hinss']:
+        if self.dataset in ['dreamer', 'stew', 'isruc', 'hinss', 'b2014']:
             self.conv1 = nn.Conv2d(in_chans, out_chans, kernel_size=(1, 15), stride=(1, 8), padding=(0, 7))
             self.conv2 = nn.Conv2d(out_chans, out_chans, kernel_size=(1, 3), padding=(0, 1))
             self.conv3 = nn.Conv2d(out_chans, out_chans, kernel_size=(1, 3), padding=(0, 1))
@@ -55,7 +55,7 @@ class TemporalConv(nn.Module):
         x = self.gelu2(self.norm2(self.conv2(x)))
         x = self.gelu3(self.norm3(self.conv3(x)))
 
-        if self.dataset not in ['dreamer', 'stew', 'isruc', 'hinss']:
+        if self.dataset not in ['dreamer', 'stew', 'isruc', 'hinss', 'b2014']:
             x = self.gelu4(self.norm4(self.conv4(x)))
 
         x = rearrange(x, 'B C NA T -> B NA (T C)')
@@ -68,7 +68,7 @@ class TemporalConv(nn.Module):
         x = self.gelu2(self.norm2(self.conv2(x)))
         x = self.gelu3(self.norm3(self.conv3(x)))
 
-        if self.dataset not in ['dreamer', 'stew', 'isruc', 'hinss']:
+        if self.dataset not in ['dreamer', 'stew', 'isruc', 'hinss', 'b2014']:
             x = self.gelu4(self.norm4(self.conv4(x)))
 
         x = rearrange(x, 'B C NA T -> B NA (T C)')
