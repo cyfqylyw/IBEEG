@@ -92,33 +92,26 @@ python preprocess_tuev.py
 ```
 
 ## Usage
-For main experiment:
+
+### For main experiment:
 ```
-nohup python -u main.py --dataset dreamer --overlap 0 --epochs 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:0 > output_dreamer.log 2>&1 &
-nohup python -u main.py --dataset dreamer --overlap 0 --epochs 100 --lr 5e-5 --alpha 1e-3 --beta 1e-3 --model_name EEG_Transformer_CL_Network --device cuda:0 > output_dreamer_abla_wo_IB.log 2>&1 &
-nohup python -u main.py --dataset dreamer --overlap 0 --epochs 100 --lr 5e-5 --alpha 1e-3 --beta 1e-3 --model_name EEG_Transformer_Network --device cuda:2 > output_dreamer_abla_wo_both.log 2>&1 &
-<!-- acc: 0.6845 -->
+python main.py --dataset dreamer --overlap 0 --epochs 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:0
 
-nohup python -u main.py --dataset stew --overlap 0 --epochs 50 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:1 > output_stew.log 2>&1 &
-nohup python -u main.py --dataset stew --overlap 0 --epochs 100 --lr 5e-5 --alpha 1e-3 --beta 1e-3 --model_name EEG_Transformer_Network --device cuda:3 > output_stew_abla_wo_both.log 2>&1 &
-<!-- acc: 0.8000 -->
+python main.py --dataset stew --overlap 0 --epochs 100 --lr 1e-4 --alpha 1e-3 --beta 1e-3 --device cuda:0 
 
-nohup python -u main.py --dataset isruc --epochs 40 --lr 5e-5 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:0 > output_isruc2.log 2>&1 &
-nohup python -u main.py --dataset isruc --epochs 10 --lr 5e-5 --alpha 1e-3 --beta 1e-4 --batch_size 256 --d_model 256 --model_name EEG_Transformer_Network --device cuda:3 > output_isruc_abla_wo_both.log 2>&1 &
-<!-- acc: 0.7302 -->  > output_isruc_a-3_b-4_l-3000.log
+python main.py --dataset isruc --epochs 100 --lr 5e-5 --alpha 1e-3 --beta 1e-4 --device cuda:0
 
-nohup python -u main.py --dataset hinss --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --batch_size 256 --d_model 256 --device cuda:1 > output_hinss.log 2>&1 &
-
-nohup python -u main.py --dataset hinss --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-5 --batch_size 256 --d_model 256 --device cuda:0 > output_hinss3.log 2>&1 &
-<!-- acc: 0.5164 -->
+python main.py --dataset hinss --epoch 100 --lr 5e-5 --alpha 1e-4 --beta 1e-4 --device cuda:0 
 ```
 
 
-For cross dataset evaluation:
+### For cross dataset evaluation:
+
 - Train on dreamer and test in STEW:
 ```
 python cross_dataset.py --dataset stew --epoch 10 --device cuda:0
 ```
+
 - Train on STEW and test in DREAMER:
 ```
 python cross_dataset.py --dataset dreamer --epoch 10 --device cuda:0
