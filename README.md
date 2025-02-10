@@ -2,7 +2,7 @@
 
 Code implementation for **Deep Multiview Information Bottleneck Framework for Electroencephalography Recognition**.
 
-
+![IBEEG](IBEEG.jpg)
 
 ## Requirements
 
